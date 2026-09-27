@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chronicles of Earth: Evolution</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Global Telemetry HUD -->
+        <div id="ui-bar">
+            <div class="hud-item">ERA: <span id="era-val">COPPER AGE</span></div>
+            <div class="hud-item">GOLD: <span id="gold-val">50</span>g</div>
+            <div class="hud-item">GRAIN STORAGE: <span id="food-val">20</span>f</div>
+            <div class="hud-item">POPULATION: <span id="pop-val">3</span></div>
+            <div class="hud-item">TECH NODES: <span id="tech-progress">0/15</span></div>
+        </div>
+
+        <!-- Viewport Workspace Wrapper -->
+        <div id="viewport-wrapper">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+
+        <!-- Technical Telemetry / System Save Module Overlay -->
+        <div id="system-menu">
+            <button class="sys-btn" id="save-btn">EXPORT WORLD DATA</button>
+            <label class="sys-btn file-label">
+                IMPORT WORLD DATA
+                <input type="file" id="load-file-input" accept=".json" style="display:none;">
+            </label>
+        </div>
+
+        <!-- Interactive Research Evaluation Overlay -->
+        <div id="quiz-overlay" class="hidden">
+            <div id="quiz-box">
+                <h3 id="quiz-title">HISTORICAL RESEARCH EVALUATION</h3>
+                <p id="quiz-question">Loading database logs...</p>
+                <div id="quiz-options"></div>
+            </div>
+        </div>
+
+        <!-- Historical Win Phase Screen -->
+        <div id="win-screen" class="hidden">
+            <div id="win-box">
+                <h2>VICTORY ACHIEVED</h2>
+                <p>You have successfully guided humanity from the dawn of metallurgy directly into the digital space age.</p>
+                <p class="highlight">Keep a careful lookout for the release of Version 2.</p>
+                <button class="sys-btn" onclick="location.reload()">RESTART SIMULATION</button>
+            </div>
+        </div>
+
+        <!-- Tactical Command Interface -->
+        <div id="build-menu">
+            <button class="build-btn" data-type="farm">FARM (15g)</button>
+            <button class="build-btn" data-type="mine">MINE (30g)</button>
+            <button class="build-btn" data-type="camp">MILITARY CAMP (40g)</button>
+            <button class="build-btn custom-action" id="research-trigger">COMMENCE ACADEMIC RESEARCH</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
