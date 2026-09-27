@@ -1,0 +1,48 @@
+<!DOCTYPE html>ds
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shark OS VM</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="desktop">
+        <div id="apps-container">
+            <div class="shortcut" onclick="openWindow('terminal')">
+                <div class="icon"></div>
+                <div class="label">Terminal</div>
+            </div>
+            <div class="shortcut" onclick="openWindow('settings')">
+                <div class="icon"></div>
+                <div class="label">Settings</div>
+            </div>
+            <div class="shortcut" onclick="openWindow('music')">
+                <div class="icon"></div>
+                <div class="label">Music Library</div>
+            </div>
+            <div class="shortcut" onclick="openWindow('bunker11')">
+                <div class="icon"></div>
+                <div class="label">Project Bunker 11</div>
+            </div>
+            <div class="shortcut" onclick="openWindow('bunker12')">
+                <div class="icon"></div>
+                <div class="label">Project Bunker 12</div>
+            </div>
+            <div class="shortcut" onclick="openWindow('browser')">
+                <div class="icon"></div>
+                <div class="label">Browser</div>
+            </div>
+        </div>
+
+        <div id="window-layer"></div>
+
+        <div id="taskbar">
+            <div class="taskbar-brand"></div>
+            <div id="taskbar-apps"></div>
+            <div id="clock">00:00</div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

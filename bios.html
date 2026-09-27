@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Shark OS VM Setup Utility</title>
+  <style>
+    body {
+      background-color: #0000aa;
+      color: #aaaaaa;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: bold;
+      margin: 0;
+      padding: 5px;
+      user-select: none;
+      box-sizing: border-box;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .bios-frame {
+      border: 4px double #aaaaaa;
+      height: calc(100vh - 10px);
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .bios-header {
+      border-bottom: 2px solid #aaaaaa;
+      padding: 8px;
+      text-align: center;
+      font-size: 3.5vw;
+    }
+
+    .bios-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .menu-columns {
+      display: flex;
+      width: 60%;
+      border-right: 2px solid #aaaaaa;
+    }
+
+    .menu-column {
+      width: 50%;
+      padding: 10px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    .menu-column:first-child {
+      border-right: 2px solid #aaaaaa;
+    }
+
+    .menu-item {
+      padding: 6px 8px;
+      margin-bottom: 4px;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-size: 2.2vw;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .menu-item.active {
+      background-color: #aa0000;
+      color: #ffffff;
+    }
+
+    .help-panel {
+      width: 40%;
+      padding: 10px;
+      font-size: 2.8vw;
+      line-height: 1.4;
+      overflow-y: auto;
+    }
+
+    .help-title {
+      color: #ffffff;
+      margin-bottom: 10px;
+      text-decoration: underline;
+    }
+
+    .bios-footer {
+      border-top: 2px solid #aaaaaa;
+      padding: 6px 4px;
+      display: flex;
+      justify-content: space-around;
+      font-size: 2.5vw;
+      color: #ffffff;
+      background-color: #0000aa;
+    }
+
+    .dialog-overlay {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.3);
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .dialog-box {
+      background-color: #00aaaa;
+      border: 4px double #ffffff;
+      color: #ffffff;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 15px 15px 0px #000000;
+      max-width: 80%;
+    }
+
+    .dialog-title {
+      font-size: 3.5vw;
+      margin-bottom: 15px;
+    }
+
+    .dialog-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .dialog-btn {
+      background: none;
+      border: none;
+      color: #ffffff;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: bold;
+      font-size: 4vw;
+      cursor: pointer;
+      padding: 2px 10px;
+    }
+
+    .dialog-btn.selected {
+      background-color: #aa0000;
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding: 20px;
+      }
+      .bios-frame {
+        height: calc(100vh - 40px);
+      }
+      .bios-header {
+        font-size: 16px;
+        padding: 10px;
+      }
+      .menu-item {
+        font-size: 14px;
+        padding: 6px 10px;
+        margin-bottom: 6px;
+      }
+      .help-panel {
+        font-size: 14px;
+        padding: 20px;
+      }
+      .bios-footer {
+        font-size: 12px;
+        padding: 10px;
+      }
+      .dialog-title {
+        font-size: 16px;
+      }
+      .dialog-btn {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bios-frame">
+  <div class="bios-header">
+    HAMMERHEAD GAMING INDUSTRIES - SHARK OS VM BIOS v1.04
+  </div>
+
+  <div class="bios-body">
+    <div class="menu-columns">
+      <div class="menu-column" id="col1">
+        <div class="menu-item active" data-help="Configure standard virtual hardware parameters including virtual clock times and drive maps.">Standard CMOS Features</div>
+        <div class="menu-item" data-help="Adjust advanced Shark OS core allocation routines and host integration setups.">Advanced BIOS Features</div>
+        <div class="menu-item" data-help="Fine-tune virtual RAM latency thresholds and memory bank optimization matrices.">Advanced Chipset Features</div>
+        <div class="menu-item" data-help="Manage hypervisor power throttling configurations and emulation low-power modes.">Power Management Setup</div>
+        <div class="menu-item" data-help="Assign communication hardware pathways and virtual device interface lanes.">PnP/PCI Configurations</div>
+      </div>
+      <div class="menu-column" id="col2">
+        <div class="menu-item" data-help="Wipe runtime cache profiles and reset virtual settings to basic safe operation flags.">Load Fail-Safe Defaults</div>
+        <div class="menu-item" data-help="Apply aggressive speed tweaks and bypass slow memory hardware checks.">Load Optimized Defaults</div>
+        <div class="menu-item" data-help="Modify the primary supervisor operational access key or configure general user credentials.">Set Supervisor Password</div>
+        <div class="menu-item" data-help="Save current configurations directly to permanent internal memory banks and start the OS.">Save & Exit Setup</div>
+        <div class="menu-item" data-help="Discard all current adjustments made during this terminal runtime loop and reboot instantly.">Exit Without Saving</div>
+      </div>
+    </div>
+
+    <div class="help-panel">
+      <div class="help-title">Item Help</div>
+      <div id="helpText">Configure standard virtual hardware parameters including virtual clock times and drive maps.</div>
+    </div>
+  </div>
+
+  <div class="bios-footer">
+    <span>↑↓←→ : Move</span>
+    <span>Enter : Select</span>
+    <span>F10 : Save & Exit</span>
+  </div>
+
+  <div class="dialog-overlay" id="dialogOverlay">
+    <div class="dialog-box">
+      <div class="dialog-title" id="dialogTitle">SAVE to CMOS and EXIT (Y/N)?</div>
+      <div class="dialog-buttons">
+        <button class="dialog-btn selected" id="btnY">Y</button>
+        <button class="dialog-btn" id="btnN">N</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const items = Array.from(document.querySelectorAll('.menu-item'));
+  const helpText = document.getElementById('helpText');
+  const dialogOverlay = document.getElementById('dialogOverlay');
+  const dialogTitle = document.getElementById('dialogTitle');
+  const btnY = document.getElementById('btnY');
+  const btnN = document.getElementById('btnN');
+  
+  let currentIndex = 0;
+  let isDialogOpen = false;
+  let dialogChoice = 'Y';
+  let currentAction = '';
+
+  function updateMenuSelection() {
+    items.forEach(item => item.classList.remove('active'));
+    const activeItem = items[currentIndex];
+    activeItem.classList.add('active');
+    helpText.textContent = activeItem.getAttribute('data-help');
+    activeItem.scrollIntoView({ block: 'nearest' });
+  }
+
+  function showDialog(type) {
+    currentAction = type;
+    isDialogOpen = true;
+    dialogChoice = 'Y';
+    btnY.classList.add('selected');
+    btnN.classList.remove('selected');
+    
+    if (type === 'save') {
+      dialogTitle.textContent = 'SAVE to CMOS and EXIT (Y/N)?';
+    } else if (type === 'exit') {
+      dialogTitle.textContent = 'Quit Without Saving (Y/N)?';
+    } else {
+      dialogTitle.textContent = 'Feature Unavailable. Exit Dialog (Y/N)?';
+    }
+    
+    dialogOverlay.style.display = 'flex';
+  }
+
+  function closeDialog() {
+    isDialogOpen = false;
+    dialogOverlay.style.display = 'none';
+  }
+
+  function confirmDialogAction() {
+    if (dialogChoice === 'Y') {
+      if (currentAction === 'save' || currentAction === 'exit') {
+        window.location.href = 'index.html';
+      } else {
+        closeDialog();
+      }
+    } else {
+      closeDialog();
+    }
+  }
+
+  function toggleDialogChoice() {
+    if (dialogChoice === 'Y') {
+      dialogChoice = 'N';
+      btnY.classList.remove('selected');
+      btnN.classList.add('selected');
+    } else {
+      dialogChoice = 'Y';
+      btnY.classList.add('selected');
+      btnN.classList.remove('selected');
+    }
+  }
+
+  document.addEventListener('keydown', function(event) {
+    if (isDialogOpen) {
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'Tab') {
+        event.preventDefault();
+        toggleDialogChoice();
+      } else if (event.key === 'Enter') {
+        event.preventDefault();
+        confirmDialogAction();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        closeDialog();
+      } else if (event.key.toLowerCase() === 'y') {
+        event.preventDefault();
+        dialogChoice = 'Y';
+        confirmDialogAction();
+      } else if (event.key.toLowerCase() === 'n') {
+        event.preventDefault();
+        dialogChoice = 'N';
+        confirmDialogAction();
+      }
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (currentIndex === 4) currentIndex = 0;
+      else if (currentIndex === 9) currentIndex = 5;
+      else currentIndex++;
+      updateMenuSelection();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (currentIndex === 0) currentIndex = 4;
+      else if (currentIndex === 5) currentIndex = 9;
+      else currentIndex--;
+      updateMenuSelection();
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      if (currentIndex < 5) {
+        currentIndex += 5;
+        updateMenuSelection();
+      }
+    } else if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      if (currentIndex >= 5) {
+        currentIndex -= 5;
+        updateMenuSelection();
+      }
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      handleSelection(items[currentIndex].textContent);
+    } else if (event.key === 'F10') {
+      event.preventDefault();
+      showDialog('save');
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      showDialog('exit');
+    }
+  });
+
+  function handleSelection(optionName) {
+    if (optionName.includes('Save & Exit')) {
+      showDialog('save');
+    } else if (optionName.includes('Exit Without Saving')) {
+      showDialog('exit');
+    } else {
+      showDialog('alert');
+    }
+  }
+
+  items.forEach((item, index) => {
+    item.addEventListener('click', () => {
+      if (isDialogOpen) return;
+      if (currentIndex === index) {
+        handleSelection(item.textContent);
+      } else {
+        currentIndex = index;
+        updateMenuSelection();
+      }
+    });
+  });
+
+  btnY.addEventListener('click', () => {
+    dialogChoice = 'Y';
+    confirmDialogAction();
+  });
+
+  btnN.addEventListener('click', () => {
+    dialogChoice = 'N';
+    confirmDialogAction();
+  });
+</script>
+
+</body>
+</html>

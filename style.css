@@ -1,0 +1,347 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    touch-action: none;
+}
+
+body, html {
+    width: 100%;
+    height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+    background-color: #000000;
+}
+
+/* --- IMAGE URL CONFIGURATION --- */
+:root {
+    /* Put Desktop Wallpaper URL here */
+    --desktop-bg: url('Images/default_background.jpeg');
+
+    /* Put Mobile Wallpaper URL here */
+    --mobile-bg: url('Images/default_background.jpeg');
+
+    /* Put System Brand Logo URL here */
+    --brand-logo: url('Images/Logo.jpeg');
+
+    /* Put Terminal App Icon URL here */
+    --terminal-icon: url('Images/terminal.jpeg');
+
+    /* Put Settings App Icon URL here */
+    --settings-icon: url('Images/System.jpeg');
+
+    /* Put Music Library App Icon URL here */
+    --music-icon: url('Images/Music.jpeg');
+
+    /* Put Project Bunker 11 App Icon URL here */
+    --bunker11-icon: url('Images/PB11.jpeg');
+
+    /* Put Project Bunker 12 App Icon URL here */
+    --bunker12-icon: url('Images/PB12.jpeg');
+
+    /* Put Shark Browser App Icon URL here */
+    --browser-icon: url('Images/Logo.jpeg');
+}
+
+#desktop {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+}
+
+#apps-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+
+.shortcut {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 75px;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.1s ease;
+}
+
+.shortcut.edit-mode {
+    animation: wiggle 0.3s infinite alternate;
+}
+
+.shortcut .icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 5px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.shortcut[data-app="terminal"] .icon { background-image: var(--terminal-icon); }
+.shortcut[data-app="settings"] .icon { background-image: var(--settings-icon); }
+.shortcut[data-app="music"] .icon { background-image: var(--music-icon); }
+.shortcut[data-app="bunker11"] .icon { background-image: var(--bunker11-icon); }
+.shortcut[data-app="bunker12"] .icon { background-image: var(--bunker12-icon); }
+.shortcut[data-app="browser"] .icon { background-image: var(--browser-icon); }
+
+.shortcut .label {
+    color: #ffffff;
+    font-size: 12px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    font-weight: 500;
+}
+
+#window-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 20;
+}
+
+#window-layer * {
+    pointer-events: auto;
+}
+
+.window {
+    position: absolute;
+    width: 400px;
+    height: 300px;
+    background: rgba(20, 30, 45, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    resize: both;
+    min-width: 200px;
+    min-height: 150px;
+}
+
+.window.fullscreen {
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    resize: none !important;
+    border-radius: 0;
+}
+
+.window-header {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.window-title {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.window-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.window-fullscreen {
+    width: 16px;
+    height: 16px;
+    background: #ffbd2e;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.window-close {
+    width: 16px;
+    height: 16px;
+    background: #ff5f56;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.window-body {
+    padding: 15px;
+    color: #e0e6ed;
+    font-size: 14px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.window-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+}
+
+#taskbar {
+    background: rgba(10, 15, 25, 0.8);
+    backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    z-index: 100;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+}
+
+.taskbar-brand {
+    width: 24px;
+    height: 24px;
+    background-image: var(--brand-logo);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.taskbar-brand.editing {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 6px #00ddff);
+}
+
+#taskbar-apps {
+    display: flex;
+    flex: 1;
+    gap: 10px;
+    position: relative;
+}
+
+.taskbar-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+.taskbar-icon:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#tb-terminal { background-image: var(--terminal-icon); }
+#tb-settings { background-image: var(--settings-icon); }
+#tb-music { background-image: var(--music-icon); }
+#tb-bunker11 { background-image: var(--bunker11-icon); }
+#tb-bunker12 { background-image: var(--bunker12-icon); }
+#tb-browser { background-image: var(--browser-icon); }
+
+#clock {
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.3;
+}
+
+@keyframes wiggle {
+    0% { transform: rotate(-2deg); }
+    100% { transform: rotate(2deg); }
+}
+
+@media only screen and (min-width: 769px) {
+    #desktop {
+        background-image: var(--desktop-bg);
+        padding-right: 60px;
+    }
+    #taskbar {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 60px;
+        height: 100%;
+        flex-direction: column;
+        padding: 20px 0;
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        gap: 30px;
+    }
+    #taskbar-apps {
+        flex-direction: column;
+        align-items: center;
+    }
+    .taskbar-icon.active::after {
+        content: '';
+        position: absolute;
+        top: 6px;
+        left: -8px;
+        width: 3px;
+        height: 20px;
+        background-color: #00ddff;
+        border-radius: 2px;
+        box-shadow: 0 0 8px #00ddff;
+    }
+    .window.fullscreen {
+        width: calc(100% - 60px) !important;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    #desktop {
+        background-image: var(--mobile-bg);
+        padding-bottom: 75px;
+        height: 100vh;
+    }
+    #taskbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 75px;
+        flex-direction: row;
+        padding: 0 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        gap: 20px;
+    }
+    #taskbar-apps {
+        flex-direction: row;
+        align-items: center;
+        overflow-x: auto;
+        padding: 5px 0;
+    }
+    #taskbar-apps::-webkit-scrollbar {
+        display: none;
+    }
+    .taskbar-icon.active::after {
+        content: '';
+        position: absolute;
+        bottom: -6px;
+        left: 6px;
+        width: 20px;
+        height: 3px;
+        background-color: #00ddff;
+        border-radius: 2px;
+        box-shadow: 0 0 8px #00ddff;
+    }
+    .window {
+        width: 85% !important;
+        height: 50% !important;
+        left: 7.5% !important;
+        top: 15% !important;
+    }
+    .window.fullscreen {
+        height: calc(100% - 75px) !important;
+    }
+}

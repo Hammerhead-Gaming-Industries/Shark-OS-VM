@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shark Browser</title>
+    <style>
+        body, html {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #2b2a33;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #fbfbfe;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        #nav-bar {
+            padding: 8px 12px;
+            background: #1c1b22;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #2b2a33;
+        }
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #fbfbfe;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        #address-input {
+            flex: 1;
+            background: #2b2a33;
+            border: 1px solid #42414d;
+            color: #fbfbfe;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+        }
+        #address-input:focus {
+            border-color: #00ddff;
+        }
+        #browser-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div id="nav-bar">
+        <button class="nav-btn" onclick="goHome()">H</button>
+        <input type="text" id="address-input" value="https://hammerhead-gaming-industries.github.io/Web/" onkeydown="checkEnter(event)">
+        <button class="nav-btn" onclick="navigate()">➜</button>
+    </div>
+    <iframe id="browser-frame" src="https://hammerhead-gaming-industries.github.io/Web/"></iframe>
+
+    <script>
+        function navigate() {
+            let url = document.getElementById('address-input').value.trim();
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            document.getElementById('browser-frame').src = url;
+        }
+
+        function checkEnter(e) {
+            if (e.key === 'Enter') {
+                navigate();
+            }
+        }
+
+        function goHome() {
+            document.getElementById('address-input').value = 'https://hammerhead-gaming-industries.github.io/Web/';
+            document.getElementById('browser-frame').src = 'https://hammerhead-gaming-industries.github.io/Web/';
+        }
+    </script>
+</body>
+</html>
