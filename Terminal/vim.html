@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vim Subsystem Interface View</title>
+    <style>
+        /* Cross-Platform Layout Settings (Matched to the Main Theme) */
+        html, body {
+            background-color: #000000;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden;
+            -webkit-text-size-adjust: none; -moz-text-size-adjust: none; text-size-adjust: none;
+        }
+        body {
+            color: #fff; font-family: 'Courier New', Courier, monospace;
+            padding: 10px; box-sizing: border-box;
+        }
+        
+        /* Forces identical size across desktops, laptops, iPhones, and Androids */
+        .vim-container, .vim-text-area, .vim-text-area span, .vim-tilde, .vim-btn, .vim-status-bar {
+            font-size: 14px !important;
+            font-family: 'Courier New', Courier, monospace !important;
+            line-height: 1.4 !important;
+        }
+
+        /* Fullscreen Container layout */
+        .vim-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000000; padding: 15px; box-sizing: border-box;
+            z-index: 9999; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* --- DYNAMIC RESPONSIVE POSITIONING & VISIBILITY LOGIC --- */
+        
+        /* Desktop Default Layout (Shortcuts Hidden, Status Bar at absolute bottom) */
+        .vim-action-tray {
+            display: none; /* Hidden on desktop by default */
+        }
+        .vim-text-area {
+            margin: 0; flex-grow: 1; white-space: pre-wrap; overflow-y: auto; color: #fff;
+            order: 1; /* text first on desktop */
+        }
+        .vim-status-bar {
+            background-color: #000000; color: #fff; padding: 10px 0 0 0;
+            font-weight: bold; min-height: 20px; border-top: 1px dashed #222222;
+            order: 2; /* status bar at the absolute bottom on desktop */
+        }
+
+        /* Mobile Adjustments (Shortcuts Visible, Status bar pinned right under them/above keyboard) */
+        @media (max-width: 768px) {
+            body { padding: 5px; }
+            .vim-container { padding: 8px; }
+            
+            .vim-action-tray {
+                display: flex; gap: 6px; padding: 0 0 6px 0; box-sizing: border-box;
+                border-bottom: 1px dashed #222222; margin-bottom: 6px;
+                order: 1; /* Action tray at the very top */
+            }
+            .vim-status-bar {
+                padding: 4px 0; border-top: none; border-bottom: 1px dashed #222222; margin-bottom: 6px;
+                order: 2; /* Status/Command Box sits strictly below shortcuts on mobile */
+            }
+            .vim-text-area {
+                order: 3; /* Text view pushed below the control dashboard elements */
+            }
+            .vim-btn {
+                padding: 6px 4px; /* Significantly smaller shortcut buttons */
+                font-size: 12px !important;
+            }
+        }
+
+        .vim-btn {
+            flex: 1; background: #111; color: #0df; border: 1px solid #333;
+            font-family: inherit; border-radius: 4px; cursor: pointer; text-align: center;
+        }
+        .vim-btn:active { background: #222; color: #fff; }
+        .vim-tilde { color: #222; user-select: none; }
+
+        /* --- VISUAL TERMINAL CURSOR LOGIC --- */
+        .vim-cursor {
+            background-color: #0df; /* Matches your theme's cyan accent */
+            color: #000 !important;
+            animation: vim-blink 1s step-end infinite;
+            display: inline-block; min-width: 1ch; min-height: 1.4em; vertical-align: bottom;
+        }
+        @keyframes vim-blink {
+            from, to { background-color: #0df; color: #000; }
+            50% { background-color: transparent; color: #fff; }
+        }
+
+        .vim-hidden-input {
+            position: absolute; opacity: 0; left: -9999px; top: 0; width: 1px; height: 1px; z-index: -1;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="vim-viewport" class="vim-container">
+        <!-- Shortcuts Tray (Order handled programmatically via CSS flex orders) -->
+        <div class="vim-action-tray">
+            <button class="vim-btn" onclick="simulateVimKey('i')">[i] Insert</button>
+            <button class="vim-btn" onclick="simulateVimKey('Escape')">[Esc] Normal</button>
+            <button class="vim-btn" onclick="simulateVimKey(':')">[:] Cmd</button>
+        </div>
+
+        <!-- Terminal state status logger box -->
+        <div id="status-bar" class="vim-status-bar"></div>
+
+        <!-- Working workspace file lines sheet view -->
+        <pre id="text-display" class="vim-text-area"></pre>
+    </div>
+
+    <!-- Completely hidden focus catch capture target area container -->
+    <textarea id="vim-mobile-input-proxy" class="vim-hidden-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+
+    <!-- Core scripting controller module injection link -->
+    <script src="vim.js"></script>
+</body>
+</html>

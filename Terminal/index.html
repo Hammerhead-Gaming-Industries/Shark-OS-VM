@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Terminal Emulator</title>
+   <link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+	 <style>
+        /* Cross-Platform Layout Settings */
+        html, body {
+            background-color: #000000;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Stops raw browser page window from scrolling out of focus */
+            
+            /* Stops mobile phone layout engines from auto-inflating font sizes */
+            -webkit-text-size-adjust: none;
+            -moz-text-size-adjust: none;
+            text-size-adjust: none;
+        }
+        body {
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Fixed container panel box keeping scrolling metrics strictly localized inside the terminal framework */
+        #terminal {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; /* Contains terminal text scrolls inside this box */
+            box-sizing: border-box;
+        }
+        
+        /* Forces identical size across desktops, laptops, iPhones, and Androids */
+        #terminal, #output, #output div, #output span, .command-echo, #prompt, #prompt-mirror-text, .terminal-cursor {
+            font-size: 14px !important;
+            font-family: 'Courier New', Courier, monospace !important;
+            line-height: 1.4 !important;
+            -webkit-text-size-adjust: none;
+            text-size-adjust: none;
+        }
+        
+        #output {
+            white-space: pre-wrap;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- VISUAL TERMINAL BLINKING CELL INPUT PROMPT --- */
+        #input-line {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            white-space: nowrap;
+            cursor: text;
+            flex-shrink: 0;
+        }
+        #prompt {
+            color: #0df;
+            margin-right: 10px;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        /* Hide browser's default thin caret pointer line cleanly */
+        #command-input {
+            background: transparent;
+            border: none;
+            color: transparent;
+            text-shadow: 0 0 0 #fff;
+            outline: none;
+            position: absolute;
+            opacity: 0;
+            z-index: -1;
+            padding: 0;
+            margin: 0;
+            width: 1px;
+        }
+
+        /* Custom display element mimicking our live terminal pipeline mirror */
+        #prompt-mirror-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        #prompt-mirror-text {
+            color: #fff;
+            white-space: pre;
+        }
+
+        .terminal-cursor {
+            background-color: #0df;
+            color: #000 !important;
+            animation: terminal-blink 1s step-end infinite;
+            display: inline-block;
+            min-width: 1ch;
+            min-height: 1.4em;
+            vertical-align: bottom;
+            margin-left: 1px;
+        }
+
+        @keyframes terminal-blink {
+            from, to { background-color: #0df; color: #000; }
+            50% { background-color: transparent; color: #fff; }
+        }
+
+        .command-echo {
+            color: #0df;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Terminal UI Layout Canvas -->
+    <div id="terminal">
+        <!-- Welcoming messaging texts restored inside output tracking node containers natively -->
+        <div id="output">
+<div>Welcome To The Shark Linux Terminal</div>
+
+        </div>
+        
+        <div id="input-line">
+            <span id="prompt">user@shark-terminal:/home/user$</span>
+            
+            <div id="prompt-mirror-wrapper">
+                <span id="prompt-mirror-text"></span><span class="terminal-cursor">&nbsp;</span>
+            </div>
+
+            <input type="text" id="command-input" autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        </div>
+    </div>
+
+    <!-- Script loading dependencies execution sequence order -->
+    <script src="commands.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const terminalInput = document.getElementById('command-input');
+            const mirrorText = document.getElementById('prompt-mirror-text');
+            const terminalBox = document.getElementById('terminal');
+
+            if (!terminalInput || !mirrorText || !terminalBox) return;
+
+            // Force keyboard focus without disrupting scroll views
+            const focusTarget = () => {
+                if (!document.getElementById('vim-iframe-overlay')) {
+                    terminalInput.focus();
+                }
+            };
+            document.addEventListener('click', focusTarget);
+            document.addEventListener('touchstart', focusTarget);
+
+            // Live character input mirror channel
+            terminalInput.addEventListener('input', function() {
+                mirrorText.textContent = this.value;
+            });
+
+            terminalInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const rawValue = this.value;
+                    
+                    this.value = ''; 
+                    mirrorText.textContent = ''; 
+                    
+                    // Run central interpreter router inside commands.js
+                    executeTerminalCommand(rawValue);
+                    
+                    // Corrected Scroll Handler: Scrolls *only* the terminal element box, smoothly keeping prompt line tracked
+                    terminalBox.scrollTop = terminalBox.scrollHeight;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
