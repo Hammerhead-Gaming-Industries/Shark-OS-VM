@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta name="google-site-verification" content="R8wT5qNDY8WfpenYvBGfkVboBXo4Wh_Jjgnn42o5coA" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shark OS VM - Boot page</title>
+   <link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+
+	 <style>
+        /* Deep blue and dark gray gaming aesthetic */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #060b13;
+            color: #ffffff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Container centering */
+        .splash-container {
+            text-align: center;
+            animation: fadeIn 1.2s ease-out;
+        }
+
+        /* Responsive image styling with a matching blue glow */
+        .splash-image {
+            max-width: 280px;
+            height: auto;
+            border-radius: 50%;
+            box-shadow: 0 0 35px rgba(0, 114, 255, 0.4);
+            margin-bottom: 25px;
+            background: transparent;
+        }
+
+        /* Title matching the bright gradient blue of the hammerhead */
+        .splash-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #00d4ff;
+            text-shadow: 0 0 15px rgba(0, 212, 255, 0.6);
+            margin: 0 0 15px 0;
+        }
+
+        /* Countdown text */
+        .countdown {
+            font-size: 1.1rem;
+            color: #7a8b9e;
+            letter-spacing: 1px;
+        }
+
+        /* Entry animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="splash-container">
+        <!-- Renders your uploaded hammerhead shark image -->
+        <img class="splash-image" src="Images/Logo.jpeg" alt="Hammerhead Gaming Industries Logo">
+        <h1 class="splash-title">Hammerhead Gaming Industries</h1>
+        <div class="countdown" id="timer">Booting</div>
+		<footer>
+    <p>&copy; Copyright Hammerhead Gaming Industries 2026</p>
+</footer>
+
+    </div>
+
+    <script>
+        let secondsLeft = 10;
+        const timerElement = document.getElementById('timer');
+
+        // Countdown loop ticking every second
+        const countdownInterval = setInterval(() => {
+            secondsLeft--;
+            timerElement.textContent = `Press F11 or Space to access BIOS`;
+            
+            if (secondsLeft <= 0) {
+                clearInterval(countdownInterval);
+            }
+        }, 1000);
+
+        // Redirects to password.html after exactly 20 seconds
+        setTimeout(function() {
+            window.location.href = "login.html";
+        }, 10000);
+    </script>
+	<script>
+  // Track how many times Space or F11 has been pressed
+  let pressCount = 0;
+
+  document.addEventListener('keydown', function(event) {
+    // Check if the pressed key is Spacebar (" ") or F11
+    if (event.key === " " || event.key === "F11") {
+      
+      // Prevent standard browser action (like F11 fullscreen) if desired
+      if (event.key === "F11") {
+        event.preventDefault();
+      }
+
+      pressCount++;
+
+      // Redirect after 3 presses
+      if (pressCount === 3) {
+        window.location.href = 'bios.html';
+      }
+    }
+  });
+</script>
+</body>
+</html>
