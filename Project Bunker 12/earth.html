@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Project Bunker 12</title>
+    <style>
+        /* CSS CORE ENGINE */
+        body {
+            margin: 0;
+            background-color: #0d0d0d;
+            color: #39ff14;
+            font-family: 'Courier New', Courier, monospace;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #status-bar {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+            background-color: #000000;
+            padding: 8px;
+            border-bottom: 3px solid #39ff14;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(57, 255, 20, 0.2);
+        }
+
+        .stat-box {
+            background: #111;
+            padding: 4px;
+            border: 1px solid #222;
+            white-space: nowrap;
+        }
+
+        #main-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 85px);
+        }
+
+        @media (min-width: 768px) {
+            #main-container {
+                flex-direction: row;
+                height: calc(100vh - 65px);
+            }
+            #status-bar {
+                display: flex;
+                justify-content: space-around;
+                font-size: 1.1rem;
+            }
+        }
+
+        #sidebar {
+            width: 100%;
+            height: auto;
+            background-color: #141414;
+            border-bottom: 2px solid #222;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            z-index: 20;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (min-width: 768px) {
+            #sidebar {
+                width: 280px;
+                height: 100%;
+                border-bottom: none;
+                border-right: 2px solid #222;
+                flex-direction: column;
+                overflow-x: hidden;
+                overflow-y: auto;
+                white-space: normal;
+                padding: 20px;
+            }
+        }
+
+        h3 { display: none; }
+        @media (min-width: 768px) {
+            h3 {
+                display: block;
+                margin-top: 0;
+                border-bottom: 1px solid #39ff14;
+                padding-bottom: 5px;
+                text-align: center;
+                letter-spacing: 2px;
+            }
+        }
+
+        .build-btn, .sys-btn {
+            background-color: #1a1a1a;
+            color: #39ff14;
+            border: 1px solid #39ff14;
+            padding: 10px 14px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            border-radius: 4px;
+            min-height: 44px;
+            transition: all 0.2s ease;
+        }
+
+        .sys-btn { border-color: #ffaa00; color: #ffaa00; }
+
+        @media (min-width: 768px) {
+            .build-btn, .sys-btn {
+                display: block;
+                width: 100%;
+                text-align: left;
+                font-size: 0.95rem;
+            }
+        }
+
+        .build-btn:hover:not(:disabled), .sys-btn:hover { background-color: #39ff14; color: #000; }
+        .sys-btn:hover { background-color: #ffaa00; color: #000; }
+
+        .build-btn:disabled { border-color: #333; color: #444; cursor: not-allowed; }
+        .build-btn.active { background-color: #39ff14; color: #000; border-color: #fff; }
+        
+        #btn-destroy { border-color: #ff3333; color: #ff3333; }
+        #btn-destroy:hover:not(:disabled) { background-color: #ff3333; color: #000; }
+        #btn-destroy.active { background-color: #ff3333; color: #000; border-color: #fff; }
+
+        #game-view {
+            flex-grow: 1;
+            background-color: #121212;
+            position: relative;
+            overflow: auto;
+            padding: 10px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (min-width: 768px) {
+            #game-view { padding: 20px; justify-content: center; }
+        }
+
+        #grid-container {
+            position: relative;
+            background-color: #050505;
+            box-shadow: 0 0 25px rgba(0,0,0,0.9);
+        }
+
+        .cell {
+            position: absolute;
+            box-sizing: border-box;
+            border: 1px solid #1a1a1a;
+            cursor: pointer;
+        }
+
+        .cell-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 10px;
+            font-weight: bold;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        /* STRETCH-PROTECTED WASTELAND SKY IMAGE BACKGROUND */
+        .bld-sky { 
+            background-image: url('background.jpeg');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7);
+        }
+        .bld-dirt { background-color: #2b1f16; }
+        
+        .status-mining { background-color: #402f22; opacity: 0.8; }
+        .status-mined { background-color: #171615; border: 1px dashed #3a3836; }
+
+        /* INFRASTRUCTURE ROOM VARIATIONS */
+        .bld-elevator { 
+            background: linear-gradient(90deg, #444 12%, transparent 12%, transparent 88%, #444 88%),
+                        linear-gradient(0deg, transparent 45%, #666 45%, #666 55%, transparent 55%);
+            background-size: 100% 100%, 100% 15px;
+        }
+        
+        .bld-quarters { background-color: #1a2c3d; border: 2px solid #2d4f6e; border-radius: 4px; }
+        .bld-recycler { background-color: #3b3b1c; border: 2px solid #707037; border-radius: 4px; }
+        .bld-miners { background-color: #4a2419; border: 2px solid #85402e; border-radius: 4px; }
+        .bld-farm { background-color: #193d24; border: 2px solid #2e7343; border-radius: 4px; }
+        
+        .bld-pub { 
+            background-color: #25122b; 
+            border: 2px solid #a322ba; 
+            border-radius: 4px; 
+            overflow: hidden;
+        }
+        .party-active {
+            animation: pulseBg 0.5s infinite alternate;
+            background-image: linear-gradient(60deg, rgba(255,0,128,0.2) 20%, transparent 20%, transparent 40%, rgba(0,128,255,0.2) 40%, rgba(0,128,255,0.2) 60%, transparent 60%);
+            background-size: 200% 100%;
+        }
+
+        @keyframes pulseBg {
+            0% { filter: brightness(1); background-position: 0% 0%; }
+            100% { filter: brightness(1.4); background-position: 100% 0%; }
+        }
+
+        /* CITIZEN CSS DEFINITIONS */
+        .citizen {
+            position: absolute;
+            width: 8px;
+            height: 14px;
+            background-color: #ffcc00;
+            border-radius: 2px;
+            z-index: 10;
+            transition: left 0.2s linear, top 0.2s linear;
+            box-shadow: 0 0 4px #ffcc00;
+        }
+        .citizen-miner { background-color: #ff5500; box-shadow: 0 0 4px #ff5500; }
+        .citizen-farmer { background-color: #00ff66; box-shadow: 0 0 4px #00ff66; }
+
+        .popup-text {
+            position: absolute;
+            color: #39ff14;
+            font-weight: bold;
+            font-size: 11px;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 100;
+        }
+
+        #game-over-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            display: none;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        #game-over-screen h1 { color: #ff0000; font-size: 3rem; margin-bottom: 10px; text-shadow: 0 0 15px #ff0000; }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-20px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="status-bar">
+        <div class="stat-box">SCRAP: <span id="scrap-val">25</span></div>
+        <div class="stat-box">FOOD: <span id="food-val">20</span></div>
+        <div class="stat-box">MORALE: <span id="morale-val">100%</span></div>
+        <div class="stat-box">POPULATION: <span id="pop-val">2/2</span></div>
+        <div class="stat-box" style="grid-column: span 2;">DAY: <span id="day-val">1 (0s)</span></div>
+    </div>
+
+    <div id="main-container">
+        <div id="sidebar">
+            <h3>BUILD MENU</h3>
+            <button class="build-btn" id="btn-mine" onclick="selectBuildType('mine')">DESIGNATE MINE (Free)</button>
+            <button class="build-btn" id="btn-elevator" onclick="selectBuildType('elevator')">ELEVATOR (Cost: 4)</button>
+            <button class="build-btn" id="btn-miners" onclick="selectBuildType('miners')">MINER STATION (Cost: 8)</button>
+            <button class="build-btn" id="btn-quarters" onclick="selectBuildType('quarters')">QUARTERS (Cost: 10)</button>
+            <button class="build-btn" id="btn-recycler" onclick="selectBuildType('recycler')">RECYCLER (Cost: 12)</button>
+            <button class="build-btn" id="btn-farm" onclick="selectBuildType('farm')">FARM (Cost: 15)</button>
+            <button class="build-btn" id="btn-pub" onclick="selectBuildType('pub')">PUB (Cost: 18)</button>
+            <button class="build-btn" id="btn-destroy" onclick="selectBuildType('destroy')">DESTROY BUILDING (Free)</button>
+            
+            <div style="height: 10px; border-top: 1px dashed #333; margin: 5px 0;"></div>
+            
+            <button class="sys-btn" id="btn-restart" onclick="restartGame()">RESTART</button>
+            <button class="sys-btn" id="btn-save" onclick="saveGameLocalStorage()">SAVE COLONY</button>
+            <button class="sys-btn" id="btn-load" onclick="loadGameLocalStorage()">LOAD COLONY</button>
+        </div>
+
+        <div id="game-view">
+            <div id="grid-container"></div>
+        </div>
+    </div>
+
+    <div id="game-over-screen">
+        <h1>GAME OVER</h1>
+        <p id="game-over-reason" style="color: #aaa; font-size: 1.2rem; margin-bottom: 20px;">CRITICAL RESOURCE DEPLETION</p>
+        <button class="sys-btn" style="border-color: #ff0000; color: #ff0000;" onclick="restartGame()">RESPAWN</button>
+    </div>
+
+    <script>
+        // JAVASCRIPT GAME ENGINE LOGIC - ENLARGED MATRIX MAP DEFINITIONS
+        const CELL_WIDTH = 64;
+        const CELL_HEIGHT = 50;
+        
+        // Massive 20 columns across by 16 rows down grid footprint
+        const COLS = 20;
+        const ROWS = 16;
+        
+        const SKY_ROWS = 3; 
+        const BUILDABLE_SURFACE_ROW = 2;
+
+        let gameData = {
+            scrap: 25,
+            food: 20,
+            morale: 100,
+            score: 0,
+            maxPop: 2,
+            dayTimer: 0,
+            dayCount: 1,
+            currentBuildType: null,
+            isGameOver: false
+        };
+
+        let gridMap = [];
+        let citizens = [];
+        let nextCitizenId = 1;
+        let activeMiningJobs = [];
+
+        const gridContainer = document.getElementById('grid-container');
+        // JAVASCRIPT GAME ENGINE LOGIC - ENVIRONMENT INTERACTIVE MATRIX
+        function initGrid() {
+            gridContainer.innerHTML = '';
+            gridContainer.style.width = `${COLS * CELL_WIDTH}px`;
+            gridContainer.style.height = `${ROWS * CELL_HEIGHT}px`;
+            gridMap = [];
+
+            for (let r = 0; r < ROWS; r++) {
+                gridMap[r] = [];
+                for (let c = 0; c < COLS; c++) {
+                    let baseLayer = 'sky';
+                    let isMined = false;
+
+                    if (r >= SKY_ROWS) {
+                        baseLayer = 'dirt';
+                        isMined = false; 
+                    } else {
+                        isMined = true; 
+                    }
+
+                    gridMap[r][c] = {
+                        layer: baseLayer,
+                        type: 'empty',
+                        mined: isMined,
+                        miningProgress: 0,
+                        miningActive: false,
+                        partyTimer: 0 
+                    };
+
+                    // Initial surface quarters block centered inside the 20-wide layout
+                    if (r === BUILDABLE_SURFACE_ROW && c === 9) {
+                        gridMap[r][c].type = 'quarters';
+                    }
+
+                    const cellDiv = document.createElement('div');
+                    cellDiv.style.width = `${CELL_WIDTH}px`;
+                    cellDiv.style.height = `${CELL_HEIGHT}px`;
+                    cellDiv.style.left = `${c * CELL_WIDTH}px`;
+                    cellDiv.style.top = `${r * CELL_HEIGHT}px`;
+                    cellDiv.id = `cell-${r}-${c}`;
+                    
+                    cellDiv.addEventListener('pointerdown', (e) => {
+                        e.preventDefault();
+                        handleCellClick(r, c);
+                    });
+
+                    gridContainer.appendChild(cellDiv);
+                    renderCellVisuals(r, c);
+                }
+            }
+        }
+
+        function renderCellVisuals(r, c) {
+            const cellDiv = document.getElementById(`cell-${r}-${c}`);
+            if (!cellDiv) return;
+
+            cellDiv.innerHTML = '';
+            let data = gridMap[r][c];
+            let className = `cell bld-${data.layer}`;
+            
+            if (data.layer === 'dirt') {
+                if (data.miningActive) className = 'cell status-mining';
+                else if (data.mined) className = 'cell status-mined';
+            }
+
+            if (data.mined && data.type !== 'empty') {
+                className = `cell bld-${data.type}`;
+                if (data.type === 'pub' && data.partyTimer > 0) {
+                    className += ' party-active';
+                }
+            }
+
+            cellDiv.className = className;
+
+            if (data.miningActive) {
+                const overlay = document.createElement('div');
+                overlay.className = 'cell-overlay';
+                overlay.innerText = 'MINING\n' + data.miningProgress + 's';
+                cellDiv.appendChild(overlay);
+            } else if (data.layer === 'dirt' && !data.mined && !data.miningActive) {
+                const overlay = document.createElement('div');
+                overlay.className = 'cell-overlay';
+                overlay.style.color = '#5e412f';
+                overlay.innerText = 'DIRT';
+                cellDiv.appendChild(overlay);
+            } else if (data.type !== 'empty') {
+                const overlay = document.createElement('div');
+                overlay.className = 'cell-overlay';
+                overlay.innerText = data.type === 'pub' && data.partyTimer > 0 ? "PARTY!" : data.type.toUpperCase();
+                cellDiv.appendChild(overlay);
+            }
+        }
+
+        function initCitizens() {
+            document.querySelectorAll('.citizen').forEach(e => e.remove());
+            citizens = [];
+            spawnCitizen(9, BUILDABLE_SURFACE_ROW, 'worker');
+            spawnCitizen(9, BUILDABLE_SURFACE_ROW, 'worker');
+        }
+
+        function spawnCitizen(c, r, role) {
+            let citizen = {
+                id: nextCitizenId++,
+                cx: c,
+                cy: r,
+                role: role,
+                offsetX: Math.floor(Math.random() * 24) + 12,
+                stuckTurns: 0
+            };
+            citizens.push(citizen);
+
+            const citDiv = document.createElement('div');
+            if (role === 'miner') citDiv.className = 'citizen citizen-miner';
+            else if (role === 'farmer') citDiv.className = 'citizen citizen-farmer';
+            else citDiv.className = 'citizen';
+
+            citDiv.id = `cit-${citizen.id}`;
+            updateCitizenDOMPosition(citizen);
+            gridContainer.appendChild(citDiv);
+        }
+
+        function updateCitizenDOMPosition(cit) {
+            const citDOM = document.getElementById(`cit-${cit.id}`);
+            if (citDOM) {
+                citDOM.style.left = `${cit.cx * CELL_WIDTH + cit.offsetX}px`;
+                citDOM.style.top = `${cit.cy * CELL_HEIGHT + (CELL_HEIGHT - 15)}px`;
+            }
+        }
+
+        // --- ASPECT RATIO ADJUSTMENT NOTE ---
+        // For the new 20-column sky layout, recommended image size is 1280 x 192 pixels to preserve alignment without distortion.
+
+        function selectBuildType(type) {
+            if (gameData.isGameOver) return;
+            if (gameData.currentBuildType === type) {
+                gameData.currentBuildType = null;
+                clearActiveButtons();
+            } else {
+                gameData.currentBuildType = type;
+                clearActiveButtons();
+                document.getElementById(`btn-${type}`).classList.add('active');
+            }
+        }
+
+        function clearActiveButtons() {
+            document.querySelectorAll('.build-btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        function handleCellClick(r, c) {
+            if (gameData.isGameOver || !gameData.currentBuildType) return;
+            let targetCell = gridMap[r][c];
+
+            if (gameData.currentBuildType === 'destroy') {
+                if (targetCell.type !== 'empty') {
+                    targetCell.type = 'empty';
+                    recalculateCaps();
+                    updateUIStrings();
+                    renderCellVisuals(r, c);
+                }
+                gameData.currentBuildType = null;
+                clearActiveButtons();
+                return;
+            }
+
+            if (gameData.currentBuildType === 'mine') {
+                if (r >= SKY_ROWS && targetCell.layer === 'dirt' && !targetCell.mined && !targetCell.miningActive) {
+                    targetCell.miningActive = true;
+                    targetCell.miningProgress = 5;
+                    activeMiningJobs.push({ r: r, c: c });
+                    renderCellVisuals(r, c);
+                }
+                gameData.currentBuildType = null;
+                clearActiveButtons();
+                return;
+            }
+
+            if (r < BUILDABLE_SURFACE_ROW) {
+                triggerGlobalNotification("CONSTRUCTION BLOCKED: SKY ZONES REDACTED", "#ff3333");
+                return;
+            }
+
+            if (!targetCell.mined || targetCell.type !== 'empty') return;
+
+            const costTable = { elevator: 4, miners: 8, quarters: 10, recycler: 12, farm: 15, pub: 18 };
+            let cost = costTable[gameData.currentBuildType];
+
+            if (gameData.scrap < cost) return;
+            if (r !== BUILDABLE_SURFACE_ROW && !hasAdjacentBuilding(r, c)) return;
+
+            gameData.scrap -= cost;
+            targetCell.type = gameData.currentBuildType;
+
+            recalculateCaps();
+            updateUIStrings();
+            renderCellVisuals(r, c);
+            
+            gameData.currentBuildType = null;
+            clearActiveButtons();
+        }
+
+        function hasAdjacentBuilding(r, c) {
+            const directions = [[-1, 0], [0, -1]];
+            for (let [dr, dc] of directions) {
+                let nr = r + dr;
+                let nc = c + dc;
+                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                    if (gridMap[nr][nc].type !== 'empty') return true;
+                }
+            }
+            return false;
+        }
+
+        function recalculateCaps() {
+            let quarters = 0, minersStations = 0, farms = 0;
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (gridMap[r][c].type === 'quarters') quarters++;
+                    if (gridMap[r][c].type === 'miners') minersStations++;
+                    if (gridMap[r][c].type === 'farm') farms++;
+                }
+            }
+            gameData.maxPop = 2 + (quarters * 3);
+            
+            let maxMiners = minersStations * 2;
+            let maxFarmers = farms * 2;
+            let currentMiners = 0, currentFarmers = 0;
+
+            citizens.forEach(cit => {
+                if (currentFarmers < maxFarmers) { cit.role = 'farmer'; currentFarmers++; }
+                else if (currentMiners < maxMiners) { cit.role = 'miner'; currentMiners++; }
+                else { cit.role = 'worker'; }
+                
+                const DOM = document.getElementById(`cit-${cit.id}`);
+                if (DOM) {
+                    if (cit.role === 'miner') DOM.className = 'citizen citizen-miner';
+                    else if (cit.role === 'farmer') DOM.className = 'citizen citizen-farmer';
+                    else DOM.className = 'citizen';
+                }
+            });
+        }
+        // JAVASCRIPT GAME ENGINE LOGIC - COMPRESSED RUNTIME TICK & AUTOSAVE
+        function runSimulationTick() {
+            if (gameData.isGameOver) return;
+            gameData.dayTimer++;
+            let penalty = (gameData.food < 10 ? 2 : 0) + (gameData.scrap < 5 ? 1 : 0);
+            let stuck = citizens.filter(c => c.stuckTurns > 8).length;
+            if (stuck > 0) penalty += Math.max(1, Math.floor(stuck * 0.2));
+            let pubs = 0, activeParties = 0;
+            for(let r=0; r<ROWS; r++) for(let c=0; c<COLS; c++) {
+                if (gridMap[r][c].type === 'pub') {
+                    pubs++;
+                    if (gridMap[r][c].partyTimer > 0) {
+                        gridMap[r][c].partyTimer--; activeParties++;
+                        if (gridMap[r][c].partyTimer === 0) renderCellVisuals(r, c); 
+                    } else if (Math.random() > 0.85) { 
+                        gridMap[r][c].partyTimer = 6; renderCellVisuals(r, c);
+                    }
+                }
+            }
+            let moraleBoost = (pubs * 1) + (activeParties * 2);
+            gameData.morale = penalty > 0 ? Math.max(0, gameData.morale - penalty + Math.floor(moraleBoost * 0.5)) : Math.min(100, gameData.morale + 1 + moraleBoost);
+            if (gameData.morale <= 0) { executeWastelandDefeat(false, false, true); return; }
+            if (gameData.dayTimer >= 30) {
+                gameData.dayTimer = 0; gameData.dayCount++;
+                let ops = 4, eat = citizens.length;
+                if (gameData.scrap < ops || gameData.food < eat) { executeWastelandDefeat(gameData.scrap < ops, gameData.food < eat, false); return; }
+                gameData.scrap -= ops; gameData.food -= eat;
+                triggerGlobalNotification("DAY " + gameData.dayCount + ": -4 SCRAP, -" + eat + " FOOD"); saveGameLocalStorage(true);
+            }
+            let rec = 0, frm = 0;
+            for(let r=0; r<ROWS; r++) for(let c=0; c<COLS; c++) { if (gridMap[r][c].type === 'recycler') rec++; if (gridMap[r][c].type === 'farm') frm++; }
+            if (rec > 0) { gameData.scrap += (rec * 2); triggerProductionPopups('recycler', '+' + (rec * 2) + ' SCRAP'); }
+            if (frm > 0) { gameData.food += frm; triggerProductionPopups('farm', '+' + frm + ' FOOD'); }
+            let miners = citizens.filter(c => c.role === 'miner').length;
+            if (activeMiningJobs.length > 0 && miners > 0) {
+                let lim = Math.min(activeMiningJobs.length, miners);
+                for (let i = 0; i < lim; i++) {
+                    let job = activeMiningJobs[i], cell = gridMap[job.r][job.c];
+                    if (cell.miningActive) {
+                        cell.miningProgress--;
+                        if (cell.miningProgress <= 0) { cell.miningActive = false; cell.mined = true; activeMiningJobs.splice(i, 1); i--; lim--; }
+                        renderCellVisuals(job.r, job.c);
+                    }
+                }
+            }
+            if (citizens.length < gameData.maxPop && gameData.scrap >= 4 && gameData.morale >= 40 && Math.random() > 0.7) {
+                for(let r=0; r<ROWS; r++) for(let c=0; c<COLS; c++) if (gridMap[r][c].type === 'quarters') {
+                    gameData.scrap -= 4; spawnCitizen(c, r, 'worker'); recalculateCaps(); r = ROWS; break;
+                }
+            }
+            updateUIStrings();
+        }
+
+        function executeWastelandDefeat(scrapShort, foodShort, moraleShort) {
+            gameData.isGameOver = true;
+            document.getElementById('game-over-reason').innerText = moraleShort ? "MORALE DEPLETION: YOUR POPULATION DIED OF DEPRESSION" : 
+                (scrapShort ? "BUNKER GRID SHUT DOWN DUE TO NO MAINTENANCE SCRAP" : "YOUR POPULATION STARVED");
+            document.getElementById('game-over-screen').style.display = 'flex';
+        }
+
+        function triggerProductionPopups(type, msg) {
+            for(let r=0; r<ROWS; r++) for(let c=0; c<COLS; c++) if (gridMap[r][c].type === type && Math.random() > 0.5) {
+                let p = document.createElement('div'); p.className = 'popup-text'; p.innerText = msg;
+                p.style.left = `${c * CELL_WIDTH + 10}px`; p.style.top = `${r * CELL_HEIGHT}px`;
+                gridContainer.appendChild(p); setTimeout(() => p.remove(), 1000);
+            }
+        }
+
+        function triggerGlobalNotification(text, color = '#ffaa00') {
+            let p = document.createElement('div'); p.className = 'popup-text'; p.style.color = color; p.style.fontSize = '11px';
+            p.style.left = '40px'; p.style.top = `${(SKY_ROWS - 1) * CELL_HEIGHT - 20}px`; p.innerText = text;
+            gridContainer.appendChild(p); setTimeout(() => p.remove(), 2500);
+        }
+
+        function runMovementTick() {
+            if (gameData.isGameOver) return;
+            citizens.forEach(cit => {
+                let v = [], cx = cit.cx, cy = cit.cy;
+                if (gridMap[cy][cx].type !== 'empty' || gridMap[cy][cx].mined) {
+                    if (cx > 0 && (gridMap[cy][cx - 1].type !== 'empty' || gridMap[cy][cx - 1].mined)) v.push({x: cx - 1, y: cy});
+                    if (cx < COLS - 1 && (gridMap[cy][cx + 1].type !== 'empty' || gridMap[cy][cx + 1].mined)) v.push({x: cx + 1, y: cy});
+                }
+                let up = (cy > 0 && (gridMap[cy][cx].type === 'elevator' || gridMap[cy - 1][cx].type === 'elevator'));
+                let dn = (cy < ROWS - 1 && gridMap[cy + 1][cx].mined && (gridMap[cy][cx].type === 'elevator' || gridMap[cy + 1][cx].type === 'elevator'));
+                if (cy > BUILDABLE_SURFACE_ROW && up) v.push({x: cx, y: cy - 1});
+                if (cy < ROWS - 1 && dn) v.push({x: cx, y: cy + 1});
+                v.push({x: cx, y: cy});
+                let n = v[Math.floor(Math.random() * v.length)];
+                cit.stuckTurns = (n.y === BUILDABLE_SURFACE_ROW && gridMap[n.y][n.x].type !== 'elevator') ? cit.stuckTurns + 1 : 0;
+                cit.cx = n.x; cit.cy = n.y; updateCitizenDOMPosition(cit);
+            });
+        }
+
+        function updateUIStrings() {
+            document.getElementById('scrap-val').innerText = gameData.scrap; document.getElementById('food-val').innerText = gameData.food;
+            document.getElementById('morale-val').innerText = gameData.morale + '%';
+            document.getElementById('pop-val').innerText = `${citizens.length}/${gameData.maxPop}`; document.getElementById('day-val').innerText = `${gameData.dayCount} (${gameData.dayTimer}s)`;
+            document.getElementById('btn-elevator').disabled = gameData.scrap < 4; document.getElementById('btn-miners').disabled = gameData.scrap < 8;
+            document.getElementById('btn-quarters').disabled = gameData.scrap < 10; document.getElementById('btn-recycler').disabled = gameData.scrap < 12;
+            document.getElementById('btn-farm').disabled = gameData.scrap < 15; document.getElementById('btn-pub').disabled = gameData.scrap < 18;
+        }
+
+        function saveGameLocalStorage(isAuto = false) {
+            localStorage.setItem('projectBunker12_save', JSON.stringify({ gameData, gridMap, citizens, activeMiningJobs, nextCitizenId }));
+            triggerGlobalNotification(isAuto ? "AUTOSAVE COMPLETED" : "COLONY TRACKS SAVED!", isAuto ? "#39ff14" : "#ffaa00");
+        }
+
+        function loadGameLocalStorage() {
+            let raw = localStorage.getItem('projectBunker12_save'); if (!raw) { triggerGlobalNotification("NO SAVE DATA AVAILABLE"); return; }
+            let d = JSON.parse(raw); gameData = d.gameData; gridMap = d.gridMap; citizens = d.citizens; activeMiningJobs = d.activeMiningJobs; nextCitizenId = d.nextCitizenId;
+            document.getElementById('game-over-screen').style.display = 'none'; document.querySelectorAll('.citizen').forEach(e => e.remove());
+            for(let r=0; r<ROWS; r++) for(let c=0; c<COLS; c++) renderCellVisuals(r, c);
+            citizens.forEach(cit => {
+                let div = document.createElement('div'); div.id = `cit-${cit.id}`;
+                div.className = cit.role === 'miner' ? 'citizen citizen-miner' : (cit.role === 'farmer' ? 'citizen citizen-farmer' : 'citizen');
+                gridContainer.appendChild(div); updateCitizenDOMPosition(cit);
+            });
+            recalculateCaps(); updateUIStrings(); triggerGlobalNotification("COLONY DATA LOADED!");
+        }
+
+        function restartGame() {
+            gameData = { scrap: 25, food: 20, morale: 100, score: 0, maxPop: 2, dayTimer: 0, dayCount: 1, currentBuildType: null, isGameOver: false };
+            activeMiningJobs = []; nextCitizenId = 1; document.getElementById('game-over-screen').style.display = 'none';
+            clearActiveButtons(); initGrid(); initCitizens(); recalculateCaps(); updateUIStrings(); triggerGlobalNotification("BUNKER ENGINE REBOOTED");
+        }
+
+        initGrid(); initCitizens(); recalculateCaps(); updateUIStrings();
+        setInterval(runSimulationTick, 1000); setInterval(runMovementTick, 500);
+    </script>
+</body>
+</html>
