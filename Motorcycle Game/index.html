@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Moto Physics Challenge</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Mobile Landscape Warning -->
+    <div id="orientation-warning">
+        <div class="phone-icon">📱🔄</div>
+        <h2>Rotate Your Device</h2>
+        <p>Please switch to landscape mode to play Moto Physics Challenge.</p>
+    </div>
+
+    <div id="game-container">
+        <!-- Game HUD -->
+        <div id="hud">
+            <div class="hud-panel" id="hud-level">Level: 1/10</div>
+            <div class="hud-panel" id="hud-status">Score: 0</div>
+        </div>
+
+        <!-- Menu Screen -->
+        <div id="menu-screen" class="screen">
+            <h1>MOTO PHYSICS STUNTS</h1>
+            <p>Race across treacherous terrain, navigate vertical shifts, and hit clean backflips. Avoid hitting your head or landing directly on explosive mines!</p>
+            <button class="btn" id="btn-show-level-select">SELECT LEVEL</button>
+        </div>
+
+        <!-- Level Select Screen -->
+        <div id="level-screen" class="screen" style="display: none;">
+            <h2>SELECT TRACK</h2>
+            <div class="level-grid" id="level-grid"></div>
+            <button class="btn" style="background:#555;" id="btn-back-to-menu">BACK</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameover-screen" class="screen" style="display: none;">
+            <h1 style="color:#d90429;" id="gameover-title">CRASHED!</h1>
+            <p id="gameover-msg">You hit your head or struck a hazard line.</p>
+            <button class="btn" id="btn-retry-level">TRY AGAIN</button>
+        </div>
+
+        <!-- Level Complete Screen -->
+        <div id="win-screen" class="screen" style="display: none;">
+            <h1 style="color:#4cc9f0;">LEVEL COMPLETED!</h1>
+            <p id="win-msg">Awesome run! Ready for the next run?</p>
+            <button class="btn" id="next-lvl-btn">NEXT LEVEL</button>
+        </div>
+
+        <!-- Game Engine Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Mobile Controls Overlay -->
+        <div id="mobile-controls">
+            <div class="ctrl-group">
+                <div class="ctrl-btn" id="btn-tilt-left">↺</div>
+                <div class="ctrl-btn" id="btn-tilt-right">↻</div>
+            </div>
+            <div class="ctrl-group">
+                <div class="ctrl-btn" id="btn-brake">⬇️</div>
+                <div class="ctrl-btn" id="btn-gas">⬆️</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
