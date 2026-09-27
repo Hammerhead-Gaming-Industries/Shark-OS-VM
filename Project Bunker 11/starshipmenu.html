@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAABQklEQVR4nO2WsU4DMRBEf94bSioKOn7/10AnofwAnZ0pIAsFidgZfSg9XbK9vS92vN6v16fH6enp9O0pWwZ/p8BsgdkCs8V9w8wXmB3uC8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prv/wM0+gIdCq7RdwAAAABJRU5ErkJggg==">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Satarship - Sector Menu</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #020208;
+            font-family: monospace;
+        }
+        #menuContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #070714, #010103);
+            z-index: 1;
+        }
+        #interfacePanel {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            background: rgba(5, 10, 20, 0.85);
+            padding: 40px 50px;
+            border: 2px solid #0df;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 221, 255, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        h1 {
+            color: #0df;
+            font-size: 28px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px #000;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #8ab;
+            font-size: 14px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        .nav-btn {
+            display: block;
+            width: 200px;
+            padding: 14px;
+            background: rgba(0, 221, 255, 0.1);
+            color: #0df;
+            border: 2px solid #0df;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover {
+            background: #0df;
+            color: #000;
+            box-shadow: 0 0 15px #0df;
+        }
+        .nav-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+<div id="menuContainer">
+    <canvas id="backgroundCanvas"></canvas>
+    
+    <div id="interfacePanel">
+        <div>
+            <h1>THE STARSHIP</h1>
+            <div class="subtitle">SURVIVAL SELECTION</div>
+        </div>
+     
+        <a href="Star/starship.html" class="nav-btn">Save 1</a>
+        <a href="Star/starship2.html" class="nav-btn">Save 2</a>
+        <a href="Star/starship3.html" class="nav-btn">Save 3</a>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("backgroundCanvas");
+const ctx = canvas.getContext("2d");
+
+const backgroundStars = [];
+const particles = [];
+
+function init() {
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    generateStarfield();
+    requestAnimationFrame(animationLoop);
+}
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+function generateStarfield() {
+    backgroundStars.length = 0;
+    for (let i = 0; i < 80; i++) {
+        backgroundStars.push({
+            x: Math.random() * 2000,
+            y: Math.random() * 2000,
+            radius: Math.random() * 2.5 + 0.5,
+            color: `hsla(${180 + Math.random() * 60}, 100%, 75%, ${Math.random() * 0.4 + 0.3})`
+        });
+    }
+}
+
+function updateAndSpawnParticles() {
+    // Generate soft space plasma particles drifting upwards gently
+    if (particles.length < 40 && Math.random() < 0.1) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: canvas.height + 10,
+            vx: (Math.random() - 0.5) * 0.6,
+            vy: -0.4 - Math.random() * 1.0,
+            life: 120 + Math.random() * 160,
+            color: Math.random() > 0.4 ? "rgba(136, 170, 187, 0.25)" : "rgba(0, 221, 255, 0.2)"
+        });
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        if (p.life <= 0 || p.x < 0 || p.x > canvas.width || p.y < 0) {
+            particles.splice(i, 1);
+        }
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Render distant starfield background matrix
+    backgroundStars.forEach(s => {
+        // Simple fallback wrapper bounds check for wide views
+        let sx = s.x % canvas.width;
+        let sy = s.y % canvas.height;
+        ctx.fillStyle = s.color;
+        ctx.beginPath();
+        ctx.arc(sx, sy, s.radius, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // Render engine plasma embers
+    particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, 2.5, 2.5);
+    });
+}
+
+function animationLoop() {
+    updateAndSpawnParticles();
+    draw();
+    requestAnimationFrame(animationLoop);
+}
+
+init();
+// any reproduction of these works will result in the perpitrator being scalped and having their skull mounted on my bedroom wall. This is not a joke.//
+</script>
+</body>
+</html>

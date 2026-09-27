@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAABQklEQVR4nO2WsU4DMRBEf94bSioKOn7/10AnofwAnZ0pIAsFidgZfSg9XbK9vS92vN6v16fH6enp9O0pWwZ/p8BsgdkCs8V9w8wXmB3uC8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prv/wM0+gIdCq7RdwAAAABJRU5ErkJggg==">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Project Bunker 11 - Void</title>
+    <style>
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; margin: 0; padding: 0; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #111; font-family: monospace; }
+        #gameContainer { position: relative; width: 100vw; height: 100vh; }
+        canvas { display: block; width: 100%; height: 100%; background: linear-gradient(to bottom, #2b1f1d, #0d0d11); }
+        #ui { position: absolute; top: 10px; left: 10px; color: #0f0; font-size: 16px; text-shadow: 2px 2px #000; pointer-events: none; line-height: 1.4; z-index: 5; }
+        #questPanel { margin-top: 10px; background: rgba(0,20,0,0.6); padding: 6px; border: 1px solid #0f0; border-radius: 4px; font-size: 13px; max-width: 250px; }
+        #topControls { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; z-index: 30; }
+        #itemMenu { position: absolute; top: 60px; right: 10px; display: none; gap: 6px; background: rgba(0,0,0,0.8); padding: 6px; border: 1px solid #0f0; border-radius: 4px; z-index: 30; }
+        #craftMenu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; background: rgba(10,15,10,0.95); border: 2px solid #0f0; color: #0f0; padding: 15px; display: none; flex-direction: column; gap: 10px; border-radius: 6px; z-index: 50; }
+        .craft-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(0,255,0,0.3); padding-bottom: 6px; }
+        .action-btn { background: rgba(0, 0, 0, 0.7); color: #0f0; border: 2px solid #0f0; padding: 8px 12px; font-weight: bold; cursor: pointer; border-radius: 4px; font-family: monospace; }
+        .action-btn:active { background: #0f0; color: #000; }
+        .sub-btn { background: #222; color: #aaa; border: 1px solid #555; padding: 4px 8px; font-size: 12px; cursor: pointer; font-family: monospace; }
+        .sub-btn.active { background: rgba(0, 150, 255, 0.3); color: #0096ff; border-color: #0096ff; }
+        #modeBtn { background: rgba(0, 255, 0, 0.2); min-width: 130px; }
+        .mobile-btn { position: absolute; bottom: 30px; background: rgba(255, 255, 255, 0.2); border: 3px solid rgba(255, 255, 255, 0.4); border-radius: 50%; color: white; font-weight: bold; display: none; justify-content: center; align-items: center; touch-action: none; z-index: 10; }
+        #joystick-zone { left: 40px; bottom: 40px; width: 120px; height: 120px; background: rgba(255, 255, 255, 0.1); border: 2px dashed rgba(255, 255, 255, 0.3); border-radius: 50%; position: absolute; display: none; z-index: 10; }
+        #joystick-stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255, 0, 0, 0.6); border-radius: 50%; }
+        #btn-jump { right: 140px; bottom: 50px; width: 70px; height: 70px; font-size: 14px; }
+        #btn-shoot { right: 40px; bottom: 65px; width: 80px; height: 80px; font-size: 16px; background: rgba(255, 0, 0, 0.3); border-color: rgba(255, 0, 0, 0.5); }
+        #btn-craft-toggle { right: 40px; bottom: 160px; width: 65px; height: 65px; font-size: 12px; background: rgba(0, 255, 0, 0.2); }
+        #gameOverScreen { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff3333; text-align: center; display: none; background: rgba(0,0,0,0.8); padding: 30px; border: 2px solid #ff3333; z-index: 40; }
+        #gameOverScreen button { margin-top: 15px; padding: 10px 20px; background: #ff3333; color: black; border: none; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui">
+        <div>HEALTH: <span id="hp">100</span>%</div>
+        <div>SCORE: <span id="score">0</span></div>
+        <div>SCRAP: <span id="scrapCount">0</span></div>
+        <div id="questPanel">
+            <div style="font-weight:bold; color:#fff; border-bottom:1px solid #0f0; margin-bottom:4px;">ACTIVE QUEST</div>
+            <div id="questDesc">Loading data...</div>
+        </div>
+    </div>
+    <div id="topControls">
+        <button id="modeBtn" class="action-btn" onclick="cycleInteractionMode()">MODE: BUILD</button>
+        <button class="action-btn" onclick="toggleCraftMenu()">CRAFT</button>
+        <button class="action-btn" onclick="saveGame()">SAVE</button>
+        <button class="action-btn" onclick="loadGame()">LOAD</button>
+    </div>
+    <div id="itemMenu">
+        <button id="btn-door" class="sub-btn active" onclick="selectSubItem('door')">DOOR (<span id="inv-door">0</span>)</button>
+        <button id="btn-hatch" class="sub-btn" onclick="selectSubItem('hatch')">HATCH (<span id="inv-hatch">0</span>)</button>
+        <button id="btn-ladder" class="sub-btn" onclick="selectSubItem('ladder')">LADDER (<span id="inv-ladder">0</span>)</button>
+        <button id="btn-scaffold" class="sub-btn" onclick="selectSubItem('scaffold')">SCAFFOLD (<span id="inv-scaffold">0</span>)</button>
+    </div>
+    <div id="craftMenu">
+        <div style="display:flex; justify-content:space-between; border-bottom:2px solid #0f0; padding-bottom:4px;">
+            <h3>CRAFTING STATION</h3>
+            <button onclick="toggleCraftMenu()" style="background:none; border:none; color:#f00; font-weight:bold; cursor:pointer;">[X]</button>
+        </div>
+        <div class="craft-row"><span>DOOR (Cost: 3 Scrap)</span><button class="sub-btn" onclick="craftItem('door', 3)">CRAFT</button></div>
+        <div class="craft-row"><span>HATCH (Cost: 2 Scrap)</span><button class="sub-btn" onclick="craftItem('hatch', 2)">CRAFT</button></div>
+        <div class="craft-row"><span>LADDER (Cost: 1 Scrap)</span><button class="sub-btn" onclick="craftItem('ladder', 1)">CRAFT</button></div>
+        <div class="craft-row"><span>SCAFFOLD (Cost: 2 Scrap)</span><button class="sub-btn" onclick="craftItem('scaffold', 2)">CRAFT</button></div>
+    </div>
+    <div id="joystick-zone"><div id="joystick-stick"></div></div>
+    <div id="btn-jump" class="mobile-btn">JUMP</div>
+    <div id="btn-shoot" class="mobile-btn">FIRE</div>
+    <div id="btn-craft-toggle" class="mobile-btn" onclick="toggleCraftMenu()">CRAFT</div>
+    <div id="gameOverScreen"><h1>GAME OVER</h1><p>YOU DIED FROM RADIATION AND MUTANTS</p><button onclick="resetGame()">RESPAWN</button></div>
+</div>
+<script>
+const canvas=document.getElementById("gameCanvas"),ctx=canvas.getContext("2d");
+let gameActive=true,score=0,cameraX=0,cameraY=0;
+const gravity=0.9,blockSize=32,airBlocksCount=15,groundBlocksCount=0,totalWorldHeightBlocks=airBlocksCount+groundBlocksCount;
+const player={x:100,y:100,width:24,height:24,vx:0,vy:0,speed:9,jumpForce:12,grounded:false,health:100,direction:1,color:"#00ffcc"};
+let inventory={scrap:5,door:1,hatch:1,ladder:2,scaffold:4};
+let currentQuest={type:"KILL",target:3,progress:0,desc:"Eliminate 3 mutants"};
+let keys={},bullets=[],enemies=[],particles=[],worldBlocks={},worldItems={},currentMode="BUILD",selectedSubItem="door";
+let isMobile=false,joystickActive=false,joystickStart={x:0,y:0},maxJoystickDist=40,mobileJumpPressed=false;
+const backgroundBuildings=[];
+
+
+
+function init(){
+    resizeCanvas();window.addEventListener('resize',resizeCanvas);
+    window.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyC')toggleCraftMenu();});
+    window.addEventListener('keyup',e=>keys[e.code]=false);
+    window.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='KeyF')shootBullet(player.x,player.y,player.width,player.height,player.direction);});
+    canvas.addEventListener('mousedown',handleInteraction);
+    canvas.addEventListener('touchstart',handleTouchInteraction,{passive:false});
+    generateBackgroundCity();detectTouchDevice();resetGame();updateUI();requestAnimationFrame(gameLoop);
+}
+function updateUI(){
+    document.getElementById("hp").innerText=Math.max(0,player.health);document.getElementById("score").innerText=score;
+    document.getElementById("scrapCount").innerText=inventory.scrap;
+    ['door','hatch','ladder','scaffold'].forEach(i=>document.getElementById(`inv-${i}`).innerText=inventory[i]);
+    document.getElementById("questDesc").innerText=`${currentQuest.desc} (${currentQuest.progress}/${currentQuest.target})`;
+}
+function toggleCraftMenu(){const m=document.getElementById("craftMenu");m.style.display=(m.style.display==="flex")?"none":"flex";}
+function craftItem(item,cost){
+    if(inventory.scrap>=cost){inventory.scrap-=cost;inventory[item]++;createSparks(window.innerWidth/2,window.innerHeight/2,"#0f0");updateUI();checkQuestProgress("CRAFT",item);}
+    else{alert("Insufficient scrap!");}
+}
+function checkQuestProgress(actionType,detail){
+    if(currentQuest.type===actionType){
+        if(actionType==="KILL"||(actionType==="BUILD"&&detail==="block")||detail===currentQuest.detailItem){
+            currentQuest.progress++;
+            if(currentQuest.progress>=currentQuest.target){score+=500;inventory.scrap+=3;generateNewQuest();}
+            updateUI();
+        }
+    }
+}
+function generateNewQuest(){
+    const q=[
+        {type:"KILL",target:4,desc:"Exterminate 4 mutants"},{type:"BUILD",target:5,desc:"Place 5 ground blocks"},
+        {type:"CRAFT",target:2,detailItem:"ladder",desc:"Manufacture 2 ladders"},{type:"CRAFT",target:2,detailItem:"scaffold",desc:"Manufacture 2 scaffolding frames"}
+    ];
+    let n=q[Math.floor(Math.random()*q.length)];currentQuest={type:n.type,target:n.target,progress:0,desc:n.desc,detailItem:n.detailItem};
+}
+function generateBackgroundCity(){
+    backgroundBuildings.length=0;
+    for(let i=0;i<60;i++){
+        backgroundBuildings.push({
+            x:i*70-200,width:45+Math.random()*40,height:5333+Math.random()*250,
+            color:`rgba(${30+Math.random()*15},${22+Math.random()*10},15,0.45)`,windows:Array.from({length:12},()=>Math.random()>0.6)
+        });
+    }
+}
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+function detectTouchDevice(){
+    if('touchstart' in window||navigator.maxTouchPoints > 0){
+        isMobile=true;['joystick-zone','btn-jump','btn-shoot','btn-craft-toggle'].forEach(id=>document.getElementById(id).style.display='flex');setupMobileEvents();
+    }
+}
+function cycleInteractionMode(){
+    const btn=document.getElementById("modeBtn"),sub=document.getElementById("itemMenu");
+    const stages={BUILD:["ITEMS","MODE: ITEMS","rgba(0,150,255,0.2)","#0096ff","flex"],ITEMS:["DESTROY","MODE: DESTROY","rgba(255,0,0,0.2)","#ff3333","none"],DESTROY:["BUILD","MODE: BUILD","rgba(0,255,0,0.2)","#0f0","none"]};
+    const n=stages[currentMode];currentMode=n[0];btn.innerText=n[1];btn.style.background=n[2];btn.style.borderColor=n[3];sub.style.display=n[4];
+}
+function selectSubItem(type){selectedSubItem=type;document.querySelectorAll('.sub-btn').forEach(b=>b.classList.toggle('active',b.id===`btn-${type}`));}
+/* NPC/Bot save states removed */
+function saveGame(){localStorage.setItem("wasteland_void_save_v5",JSON.stringify({score,playerHealth:player.health,playerX:player.x,playerY:player.y,worldBlocks,worldItems,inventory,currentQuest}));alert("Saved!");}
+function loadGame(){
+    const data=localStorage.getItem("wasteland_void_save_v5");if(!data)return;const saved=JSON.parse(data);
+    score=saved.score;player.health=saved.playerHealth;player.x=saved.playerX;player.y=saved.playerY;worldBlocks=saved.worldBlocks;worldItems=saved.worldItems||{};inventory=saved.inventory||inventory;currentQuest=saved.currentQuest||currentQuest;updateUI();bullets=[];enemies=[];gameActive=true;document.getElementById("gameOverScreen").style.display="none";alert("Loaded!");
+}
+function resetGame(){
+    player.health=100;player.x=200;player.vx=player.vy=score=cameraX=cameraY=0;bullets=[];enemies=[];particles=[];worldBlocks={};worldItems={};gameActive=true;
+    for(let gx=-50;gx<200;gx++){for(let gy=airBlocksCount;gy<totalWorldHeightBlocks;gy++){worldBlocks[`${gx},${gy}`]=true;}}
+    player.y=(airBlocksCount*blockSize)-player.height-10;document.getElementById("gameOverScreen").style.display="none";updateUI();
+}
+function handleInteraction(e){if(!gameActive||(e.clientY<110&&e.clientX>window.innerWidth-320))return;const r=canvas.getBoundingClientRect();processGridAction(e.clientX-r.left+cameraX,e.clientY-r.top+cameraY);}
+function handleTouchInteraction(e){
+    if(!gameActive||!isMobile)return;const touch=e.changedTouches[0];if(touch.clientY<110&&touch.clientX>window.innerWidth-320)return; 
+    if(touch.clientX<window.innerWidth/2&&touch.clientY>window.innerHeight-180)return;if(touch.clientX>window.innerWidth/2&&touch.clientY>window.innerHeight-150)return;
+    e.preventDefault();const r=canvas.getBoundingClientRect();processGridAction(touch.clientX-r.left+cameraX,touch.clientY-r.top+cameraY);
+}
+function processGridAction(clickX,clickY){
+    const gx=Math.floor(clickX/blockSize),gy=Math.floor(clickY/blockSize),k=`${gx},${gy}`;
+    for(let itKey in worldItems){let it=worldItems[itKey];if(gx===it.x&&((it.type==='door'&&(gy===it.y||gy===it.y-1))||(it.type==='hatch'&&gy===it.y))){it.open=!it.open;createSparks(it.x*blockSize+blockSize/2,it.y*blockSize,"#0096ff");return;}}
+    if(currentMode==="DESTROY"){if(worldBlocks[k]){delete worldBlocks[k];createSparks(gx*blockSize+blockSize/2,gy*blockSize+blockSize/2,"#4a3319");}if(worldItems[k])delete worldItems[k];let t=`${gx},${gy+1}`;if(worldItems[t]&&worldItems[t].type==='door')delete worldItems[t];}
+    else if(currentMode==="BUILD"){worldBlocks[k]=true;createSparks(gx*blockSize+blockSize/2,gy*blockSize+blockSize/2,"#8c664d");checkQuestProgress("BUILD","block");}
+    else if(currentMode==="ITEMS"){if(inventory[selectedSubItem]>0){inventory[selectedSubItem]--;worldItems[k]={x:gx,y:gy,type:selectedSubItem,open:false};createSparks(gx*blockSize+blockSize/2,gy*blockSize,"#0096ff");updateUI();}}
+}
+function setupMobileEvents(){
+    const j=document.getElementById('joystick-zone'),s=document.getElementById('joystick-stick');
+    j.addEventListener('touchstart',()=>{joystickActive=true;const b=j.getBoundingClientRect();joystickStart={x:b.left+b.width/2,y:b.top+b.height/2};});
+    window.addEventListener('touchmove',e=>{if(!joystickActive)return;const t=Object.values(e.touches).find(t=>t.clientX<window.innerWidth/2);if(!t)return;let dx=t.clientX-joystickStart.x;if(Math.abs(dx)>maxJoystickDist)dx=maxJoystickDist*Math.sign(dx);s.style.transform=`translate(${dx}px,0px)`;player.vx=(dx/maxJoystickDist)*player.speed;});
+    window.addEventListener('touchend',e=>{if(e&&e.touches&&!Object.values(e.touches).find(t=>t.clientX<window.innerWidth/2)){joystickActive=false;s.style.transform=`translate(0px,0px)`;player.vx=0;}});
+    document.getElementById('btn-jump').addEventListener('touchstart',e=>{e.preventDefault();mobileJumpPressed=true;});document.getElementById('btn-jump').addEventListener('touchend',e=>{e.preventDefault();mobileJumpPressed=false;});
+    document.getElementById('btn-shoot').addEventListener('touchstart',e=>{e.preventDefault();shootBullet(player.x,player.y,player.width,player.height,player.direction);});
+}
+function shootBullet(x,y,w,h,d){if(gameActive)bullets.push({x:x+(d===1?w:0),y:y+h/2-3,vx:d*12,width:10,height:4});}
+function spawnEnemy(){if(enemies.length<150&&Math.random()<0.015)enemies.push({x:player.x+canvas.width/2+Math.random()*200,y:(airBlocksCount-100)*blockSize,width:26,height:40,vx:0,vy:0,speed:3.2+Math.random()*1.5,health:2,color:"#7D3C00"});}
+function checkCollision(x,y,width,height){
+    const sx=Math.floor(x/blockSize),ex=Math.floor((x+width)/blockSize),sy=Math.floor(y/blockSize),ey=Math.floor((y+height)/blockSize);let c=false;
+    for(let gx=sx;gx<=ex;gx++){
+        for(let gy=sy;gy<=ey;gy++){
+            if(worldBlocks[`${gx},${gy}`])return{hit:true,top:gy*blockSize,bottom:(gy+1)*blockSize,left:gx*blockSize,right:(gx+1)*blockSize,climbable:false};
+            for(let k in worldItems){let it=worldItems[k];if(gx===it.x){if((it.type==='ladder'||it.type==='scaffold')&&gy===it.y)c=true;if(!it.open&&((it.type==='door'&&(gy===it.y||gy===it.y-1))||(it.type==='hatch'&&gy===it.y)))return{hit:true,top:(it.type==='hatch'?it.y:it.y-1)*blockSize,bottom:(it.y+1)*blockSize,left:it.x*blockSize,right:(it.x+1)*blockSize,climbable:false};}}
+        }
+    }
+    return{hit:false,climbable:c};
+}
+function update(){
+    if(!gameActive)return;let overlap=checkCollision(player.x,player.y,player.width,player.height),climb=overlap.climbable,hold=isMobile?mobileJumpPressed:keys['Space'];
+    if(!isMobile){player.vx=(keys['KeyA']||keys['ArrowLeft'])?-player.speed:((keys['KeyD']||keys['ArrowRight'])?player.speed:0);if(player.vx!==0)player.direction=Math.sign(player.vx);}
+    else{if(Math.abs(player.vx)>0.1)player.direction=Math.sign(player.vx);}
+    if(climb&&hold){player.vy=-player.speed*0.7;player.grounded=false;}
+    else{if(hold&&player.grounded&&!climb){player.vy=-player.jumpForce;player.grounded=false;}player.vy+=gravity;}
+    player.x+=player.vx;let hBox=checkCollision(player.x,player.y,player.width,player.height);if(hBox.hit)player.x=player.vx > 0?hBox.left-player.width-0.1:hBox.right+0.1;
+    player.y+=player.vy;player.grounded=false;let vBox=checkCollision(player.x,player.y,player.width,player.height);if(vBox.hit){if(player.vy > 0){player.y=vBox.top-player.height-0.1;player.vy=0;player.grounded=true;}else{player.y=vBox.bottom+0.1;player.vy=0;}}
+    if(player.x<10)player.x=10;if(player.y>(totalWorldHeightBlocks+2)*blockSize)player.health=0;
+
+    cameraX=player.x-canvas.width/2;cameraY=player.y-canvas.height/2;
+    for(let b=bullets.length-1;b >= 0;b--){bullets[b].x+=bullets[b].vx;if(checkCollision(bullets[b].x,bullets[b].y,bullets[b].width,bullets[b].height).hit||Math.abs(bullets[b].x-cameraX)>canvas.width*2)bullets.splice(b,1);}
+    spawnEnemy();
+    for(let e=enemies.length-1;e >= 0;e--){
+        let en=enemies[e];en.vy+=gravity;let tx=player.x;
+        en.vx=Math.sign(tx-en.x)*en.speed;en.x+=en.vx;let eH=checkCollision(en.x,en.y,en.width,en.height);if(eH.hit){en.x=en.vx > 0?eH.left-en.width-0.1:eH.right+0.1;if(en.vy===0)en.vy=-10;}
+        en.y+=en.vy;let eV=checkCollision(en.x,en.y,en.width,en.height);if(eV.hit){en.y=en.vy > 0?eV.top-en.height-0.1:eV.bottom+0.1;en.vy=0;}
+        if(en.x<player.x+player.width&&en.x+en.width>player.x&&en.y<player.y+player.height&&en.y+en.height>player.y){player.health-=1;document.getElementById("hp").innerText=Math.max(0,player.health);createSparks(player.x+player.width/2,player.y+player.height/2,"#ff3333");if(player.health <= 0){gameActive=false;document.getElementById("gameOverScreen").style.display="block";}}
+        for(let b=bullets.length-1;b >= 0;b--){
+            let bu=bullets[b];if(bu.x<en.x+en.width&&bu.x+bu.width>en.x&&bu.y<en.y+en.height&&bu.y+bu.height>en.y){bullets.splice(b,1);en.health-=1;createSparks(en.x+en.width/2,en.y+en.height/2,"#7D3C00");if(en.health<=0){enemies.splice(e,1);score+=100;inventory.scrap+=1;checkQuestProgress("KILL","mutant");updateUI();break;} }
+        }
+    }
+    for(let p=particles.length-1;p >= 0;p--){particles[p].x+=particles[p].vx;particles[p].y+=particles[p].vy;particles[p].life--;if(particles[p].life<=0)particles.splice(p,1);}
+}
+function createSparks(x,y,color){for(let i=0;i<6;i++)particles.push({x:x,y:y,vx:(Math.random()-0.5)*5,vy:(Math.random()-0.5)*5,life:12,color:color});}
+function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.save();ctx.translate(-cameraX*0.3,-cameraY*0.3);
+    backgroundBuildings.forEach(b=>{
+        ctx.fillStyle=b.color;let base=(totalWorldHeightBlocks*blockSize);ctx.fillRect(b.x,base-b.height,b.width,b.height);ctx.fillStyle="rgba(255,230,150,0.25)";
+        let rows=Math.floor(b.height/35),cols=Math.floor(b.width/18);
+        for(let r=0; r<rows; r++){for(let c=0; c<cols; c++){if(b.windows[(r+c)%b.windows.length])ctx.fillRect(b.x+6+(c*14),base-b.height+15+(r*30),6,10);}}
+    });
+    ctx.restore();
+    ctx.save();ctx.translate(-cameraX,-cameraY);
+    for(let key in worldBlocks){
+        const coords=key.split(',').map(Number);const bx=coords[0]*blockSize,by=coords[1]*blockSize;
+        if(bx+blockSize>cameraX&&bx<canvas.width+cameraX&&by+blockSize>cameraY&&by<canvas.height+cameraY){
+            ctx.fillStyle="#5c4033";ctx.fillRect(bx,by,blockSize,blockSize);ctx.fillStyle="#422e25";ctx.fillRect(bx,by,blockSize,3);ctx.fillRect(bx,by,3,blockSize);
+            ctx.fillStyle="#705346";ctx.fillRect(bx+blockSize-3,by,3,blockSize);ctx.fillRect(bx,by+blockSize-3,blockSize,3);
+        }
+    }
+    for(let itKey in worldItems){
+        let it=worldItems[itKey],ix=it.x*blockSize,iy=it.y*blockSize;
+        if(ix+blockSize>cameraX&&ix<canvas.width+cameraX&&iy+blockSize>cameraY&&iy<canvas.height+cameraY){
+            if(it.type==='door'){
+                let dy=iy-blockSize,dh=blockSize*2;
+                if(it.open){ctx.strokeStyle="#0096ff";ctx.lineWidth=2;ctx.strokeRect(ix+2,dy,blockSize-4,dh);ctx.fillStyle="rgba(0,150,255,0.15)";ctx.fillRect(ix+2,dy,blockSize-4,dh);}
+                else{ctx.fillStyle="#2c3e50";ctx.fillRect(ix+2,dy,blockSize-4,dh);ctx.fillStyle="#0096ff";ctx.fillRect(ix+4,dy+6,blockSize-8,4);ctx.fillRect(ix+4,dy+dh-10,blockSize-8,4);}
+            }else if(it.type==='hatch'){
+                if(it.open){ctx.strokeStyle="#0096ff";ctx.lineWidth=2;ctx.strokeRect(ix,iy,4,blockSize);}
+                else{ctx.fillStyle="#2c3e50";ctx.fillRect(ix,iy,blockSize,6);ctx.fillStyle="#0096ff";ctx.fillRect(ix+blockSize/2-4,iy+1,8,3);}
+            }else if(it.type==='ladder'){
+                ctx.fillStyle="#8c664d";ctx.fillRect(ix+4,iy,4,blockSize);ctx.fillRect(ix+blockSize-8,iy,4,blockSize);
+                for(let r=4;r<blockSize;r+=8)ctx.fillRect(ix+4,iy+r,blockSize-8,3);
+            }else if(it.type==='scaffold'){
+                ctx.strokeStyle="#7f8c8d";ctx.lineWidth=2;ctx.strokeRect(ix+2,iy+2,blockSize-4,blockSize-4);ctx.beginPath();ctx.moveTo(ix+2,iy+2);ctx.lineTo(ix+blockSize-2,iy+blockSize-2);ctx.moveTo(ix+blockSize-2,iy+2);ctx.lineTo(ix+2,iy+blockSize-2);ctx.stroke();
+            }
+        }
+    }
+    ctx.fillStyle=player.color;ctx.fillRect(player.x,player.y,player.width,player.height);
+    ctx.fillStyle="#fff";ctx.fillRect(player.direction===1?player.x+player.width-7:player.x+2,player.y+4,5,5);
+    enemies.forEach(en => { ctx.fillStyle=en.color;ctx.fillRect(en.x,en.y,en.width,en.height);ctx.fillStyle="#ff0000";ctx.fillRect(en.x+(player.x>en.x?en.width-6:2),en.y+6,4,4); });
+    ctx.fillStyle="#ffcc00";bullets.forEach(b=>ctx.fillRect(b.x,b.y,b.width,b.height));
+    particles.forEach(p=>{ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,3,3);});ctx.restore();
+}
+function gameLoop(){update();draw();requestAnimationFrame(gameLoop);}
+init();
+</script>
+<script>
+(function() {
+    
+    if (typeof inventory !== 'undefined') {
+        inventory.turret = 0;
+        inventory.nuclear = 2; // Start with 2 nuclear blocks
+    }
+    
+    let worldTurrets = []; // Stores localized data for placed turrets
+
+    const styleFix = document.createElement('style');
+    styleFix.innerHTML = `.sub-btn { text-transform: uppercase; }`;
+    document.head.appendChild(styleFix);
+
+    const craftMenuInterval = setInterval(() => {
+        const craftMenu = document.getElementById('craftMenu');
+        if (craftMenu) {
+           
+            const nuclearRow = document.createElement('div');
+            nuclearRow.className = 'craft-row';
+            nuclearRow.innerHTML = `<span>NUCLEAR BLOCK (Cost: 1 Scrap)</span><button class="sub-btn" id="craft-nuclear-btn">CRAFT</button>`;
+            craftMenu.appendChild(nuclearRow);
+
+            const turretRow = document.createElement('div');
+            turretRow.className = 'craft-row';
+            turretRow.innerHTML = `<span>DEFENSE TURRET (Cost: 25 Scrap)</span><button class="sub-btn" id="craft-turret-btn">CRAFT</button>`;
+            craftMenu.appendChild(turretRow);
+
+            document.getElementById('craft-nuclear-btn').addEventListener('click', () => craftCustomItem('nuclear', 1));
+            document.getElementById('craft-turret-btn').addEventListener('click', () => craftCustomItem('turret', 25));
+
+            clearInterval(craftMenuInterval);
+        }
+    }, 100);
+
+    const itemMenuInterval = setInterval(() => {
+        const itemMenu = document.getElementById('itemMenu');
+        if (itemMenu) {
+            
+            const nucBtn = document.createElement('button');
+            nucBtn.id = 'btn-nuclear';
+            nucBtn.className = 'sub-btn';
+            nucBtn.innerHTML = `NUCLEAR (<span id="inv-nuclear">0</span>)`;
+            nucBtn.onclick = () => selectCustomSubItem('nuclear');
+            itemMenu.appendChild(nucBtn);
+
+            const turBtn = document.createElement('button');
+            turBtn.id = 'btn-turret';
+            turBtn.className = 'sub-btn';
+            turBtn.innerHTML = `TURRET (<span id="inv-turret">0</span>)`;
+            turBtn.onclick = () => selectCustomSubItem('turret');
+            itemMenu.appendChild(turBtn);
+
+            clearInterval(itemMenuInterval);
+        }
+    }, 100);
+    function craftCustomItem(item, cost) {
+        if (typeof inventory === 'undefined') return;
+        if (inventory.scrap >= cost) {
+            inventory.scrap -= cost;
+            inventory[item]++;
+            if (typeof createSparks === 'function') createSparks(window.innerWidth/2, window.innerHeight/2, "#ffcc00", 12);
+            if (typeof playWastelandSound === 'function') playWastelandSound('craft');
+            syncCustomUI();
+        } else {
+            if (typeof playWastelandSound === 'function') playWastelandSound('hit');
+        }
+    }
+
+    function selectCustomSubItem(type) {
+        if (typeof selectedSubItem !== 'undefined') {
+            selectedSubItem = type;
+            document.querySelectorAll('.sub-btn').forEach(b => b.classList.toggle('active', b.id === `btn-${type}`));
+            if (typeof playWastelandSound === 'function') playWastelandSound('ui');
+        }
+    }
+    function syncCustomUI() {
+        if (typeof inventory === 'undefined') return;
+        const nucCounter = document.getElementById('inv-nuclear');
+        if (nucCounter) nucCounter.innerText = inventory.nuclear || 0;
+        const turCounter = document.getElementById('inv-turret');
+        if (turCounter) turCounter.innerText = inventory.turret || 0;
+        const scrapCounter = document.getElementById('scrapCount');
+        if (scrapCounter) scrapCounter.innerText = inventory.scrap;
+    }
+    setInterval(syncCustomUI, 200);
+
+    if (typeof processGridAction === 'function') {
+        const originalProcessGridAction = processGridAction;
+
+        processGridAction = function(clickX, clickY) {
+            if (typeof currentMode === 'undefined' || typeof selectedSubItem === 'undefined' || typeof worldBlocks === 'undefined' || typeof worldItems === 'undefined') return;
+            const gx = Math.floor(clickX / blockSize);
+            const gy = Math.floor(clickY / blockSize);
+            const k = `${gx},${gy}`;
+
+            if (currentMode === "ITEMS") {
+                if (selectedSubItem === "nuclear" && inventory.nuclear > 0) {
+                    inventory.nuclear--;
+                    worldBlocks[k] = "nuclear"; 
+                    if (typeof createSparks === 'function') createSparks(gx*blockSize+blockSize/2, gy*blockSize+blockSize/2, "#ffcc00", 8);
+                    if (typeof playWastelandSound === 'function') playWastelandSound('build');
+                    syncCustomUI();
+                    return;
+                }
+                if (selectedSubItem === "turret" && inventory.turret > 0) {
+                    inventory.turret--;
+                    worldTurrets.push({ x: gx, y: gy, fireTimer: 0 });
+                    worldItems[k] = { x: gx, y: gy, type: "turret_base", open: false };
+                    if (typeof createSparks === 'function') createSparks(gx*blockSize+blockSize/2, gy*blockSize, "#00ff00", 12);
+                    if (typeof playWastelandSound === 'function') playWastelandSound('build');
+                    syncCustomUI();
+                    return;
+                }
+            }
+            
+            if (currentMode === "DESTROY") {
+                if (worldBlocks[k] === "nuclear") {
+                    delete worldBlocks[k];
+                    if (typeof createSparks === 'function') createSparks(gx*blockSize+blockSize/2, gy*blockSize+blockSize/2, "#ffcc00", 12);
+                    if (typeof playWastelandSound === 'function') playWastelandSound('hit');
+                    return;
+                }
+                worldTurrets = worldTurrets.filter(t => {
+                    if (t.x === gx && t.y === gy) {
+                        if (typeof createSparks === 'function') createSparks(gx*blockSize+blockSize/2, gy*blockSize+blockSize/2, "#ff3333", 10);
+                        if (typeof playWastelandSound === 'function') playWastelandSound('hit');
+                        return false;
+                    }
+                    return true;
+                });
+            }
+            originalProcessGridAction(clickX, clickY);
+        };
+    }
+    if (typeof update === 'function') {
+        const originalUpdate = update;
+
+        update = function() {
+            originalUpdate();
+            if (typeof gameActive === 'undefined' || !gameActive || typeof enemies === 'undefined' || typeof bullets === 'undefined') return;
+
+            worldTurrets.forEach(turret => {
+                if (turret.fireTimer > 0) turret.fireTimer--;
+
+                let targetEnemy = null;
+                let closestDist = 280; // 280px operational range
+
+                enemies.forEach(en => {
+                    const dx = (en.x + en.width/2) - (turret.x * blockSize + blockSize/2);
+                    const dy = (en.y + en.height/2) - (turret.y * blockSize + blockSize/2);
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < closestDist) { closestDist = dist; targetEnemy = en; }
+                });
+
+                if (targetEnemy && turret.fireTimer === 0) {
+                    const tX = turret.x * blockSize + blockSize / 2;
+                    const tY = turret.y * blockSize + 6;
+                    const dirX = (targetEnemy.x + targetEnemy.width/2) > tX ? 1 : -1;
+
+                    bullets.push({ x: tX + (dirX === 1 ? 16 : -16), y: tY, vx: dirX * 13, width: 10, height: 3 });
+                    if (typeof playWastelandSound === 'function') playWastelandSound('shoot');
+                    turret.fireTimer = 16; // Reload time rate limit
+                }
+            });
+        };
+    }
+    if (typeof draw === 'function') {
+        const originalDraw = draw;
+
+        draw = function() {
+            originalDraw();
+            if (typeof ctx === 'undefined' || typeof cameraX === 'undefined' || typeof cameraY === 'undefined' || typeof worldBlocks === 'undefined') return;
+
+            ctx.save();
+            ctx.translate(-cameraX, -cameraY);
+
+            for (let key in worldBlocks) {
+                if (worldBlocks[key] === "nuclear") {
+                    const coords = key.split(',').map(Number);
+                    const bx = coords[0] * blockSize; const by = coords[1] * blockSize;
+
+                    if (bx + blockSize > cameraX && bx < window.innerWidth + cameraX && by + blockSize > cameraY && by < window.innerHeight + cameraY) {
+                        ctx.fillStyle = "#ffcc00"; ctx.fillRect(bx, by, blockSize, blockSize);
+                        ctx.strokeStyle = "#000000"; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, blockSize - 2, blockSize - 2);
+
+                        ctx.save(); ctx.translate(bx + blockSize / 2, by + blockSize / 2); ctx.fillStyle = "#000000";
+                        ctx.beginPath(); ctx.arc(0, 0, 2.5, 0, Math.PI * 2); ctx.fill();
+
+                        for (let i = 0; i < 3; i++) {
+                            ctx.rotate((120 * Math.PI) / 180); ctx.beginPath(); ctx.moveTo(0, -3); ctx.lineTo(-4, -9);
+                            ctx.arc(0, 0, 10, (-110 * Math.PI) / 180, (-70 * Math.PI) / 180, false); ctx.lineTo(0, -3);
+                            ctx.closePath(); ctx.fill();
+                        }
+                        ctx.restore();
+                    }
+                }
+            }
+            worldTurrets.forEach(turret => {
+                const tx = turret.x * blockSize; const ty = turret.y * blockSize;
+                if (tx + blockSize > cameraX && tx < window.innerWidth + cameraX && ty + blockSize > cameraY && ty < window.innerHeight + cameraY) {
+                    ctx.fillStyle = "#34495e"; ctx.fillRect(tx + 4, ty + blockSize - 8, blockSize - 8, 8);
+                    ctx.fillStyle = "#2c3e50"; ctx.fillRect(tx + 8, ty + blockSize - 14, blockSize - 16, 6);
+                    ctx.fillStyle = "#7f8c8d"; ctx.fillRect(tx + blockSize/2 - 3, ty + 12, 6, 10);
+
+                    let faceDir = 1;
+                    if (typeof enemies !== 'undefined') {
+                        let closestEnemy = null; let minDist = 300;
+                        enemies.forEach(en => {
+                            let d = Math.abs((en.x + en.width/2) - (tx + blockSize/2));
+                            if (d < minDist) { minDist = d; closestEnemy = en; }
+                        });
+                        if (closestEnemy && (closestEnemy.x + closestEnemy.width/2) < (tx + blockSize/2)) faceDir = -1;
+                    }
+                    ctx.fillStyle = "#16a085"; ctx.fillRect(tx + blockSize/2 - 8, ty + 4, 16, 10);
+                    ctx.fillStyle = "#e74c3c"; ctx.fillRect(faceDir === 1 ? tx + blockSize/2 + 4 : tx + blockSize/2 - 7, ty + 6, 3, 3);
+                    ctx.fillStyle = "#2c3e50";
+                    if (faceDir === 1) ctx.fillRect(tx + blockSize/2 + 8, ty + 7, 10, 4);
+                    else ctx.fillRect(tx + blockSize/2 - 18, ty + 7, 10, 4);
+                }
+            });
+            ctx.restore();
+        };
+    }
+})();
+</script>
+</body>
+</html>

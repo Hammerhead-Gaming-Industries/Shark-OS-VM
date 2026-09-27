@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Bunker 11 - Intel Briefing</title>
+    <style>
+        /* Base Terminal Styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #030704; /* Deep bunker black */
+            color: #33ff33; /* Classic terminal neon green */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* CRT Screen Scanline Overlay Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 99;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Main Container matching Project Bunker 11 */
+        .bunker-panel {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 850px;
+            max-height: 85vh;
+            background: rgba(5, 15, 7, 0.9);
+            border: 2px solid #33ff33;
+            border-radius: 4px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(51, 255, 51, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header UI Elements */
+        .terminal-header {
+            border-bottom: 2px dashed #33ff33;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .system-status {
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            color: #22aa22;
+        }
+
+        .title-text {
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-shadow: 0 0 8px rgba(51, 255, 51, 0.6);
+        }
+
+        /* Scrollable Story Core Container */
+        .story-scroller {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 15px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* Custom Themed Scrollbar */
+        .story-scroller::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .story-scroller::-webkit-scrollbar-track {
+            background: rgba(5, 15, 7, 0.5);
+            border: 1px solid rgba(51, 255, 51, 0.3);
+        }
+
+        .story-scroller::-webkit-scrollbar-thumb {
+            background: #33ff33;
+            box-shadow: 0 0 5px #33ff33;
+        }
+
+        /* Text Presentation Layout */
+        .story-scroller p {
+            margin-bottom: 20px;
+            text-transform: uppercase; /* Keeps the raw data/terminal vibe */
+        }
+
+        /* Footer Container */
+        .terminal-footer {
+            margin-top: 20px;
+            border-top: 2px dashed #33ff33;
+            padding-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        /* Tactical Skip Button */
+        .skip-action-btn {
+            background: #113311;
+            color: #33ff33;
+            border: 2px solid #33ff33;
+            padding: 10px 25px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(51, 255, 51, 0.1);
+        }
+
+        .skip-action-btn:hover {
+            background: #33ff33;
+            color: #030704;
+            box-shadow: 0 0 15px #33ff33;
+            transform: scale(1.02);
+        }
+
+        .skip-action-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bunker-panel">
+        <header class="terminal-header">
+            <div class="system-status">SYS.LOC / INTEL_LOG_B11</div>
+            <h1 class="title-text">PROJECT BUNKER 11</h1>
+        </header>
+
+        <!-- Scrollable text window -->
+        <main class="story-scroller" id="bunkerLog">
+            <div>[LOG START]</div><div>YEAR: 3042<div><p></p>
+            
+            <p>YOU ARE ENTERING A SEGREGATED COMBAT AND SURVIVAL ECOSYSTEM. THE OUTSIDE WORLD NO LONGER LOGS AN ACTIVE SIGNAL. RUNNING SOLO MISSIONS PROVES STATISTICALLY LETHAL, YET TRUSTING A TEAM CARRIES ITS OWN EQUAL ANOMALIES OUT THERE.</p>
+            
+            <p>YOU WERE DEPLOYED AS GROUP 11 TO BUILD A BUNKER BUT UPON LANDING ALL COMMS WERE LOST.</p>
+            
+            <p>INITIALIZING SYSTEM INTERFACE AND LOADING REGIONAL PLAYER MANUAL ARRAYS... DATA STREAMS COMPLETE. STAND BY FOR ENGAGEMENT CORRIDOR ROUTING.</p>
+        </main>
+
+        <footer class="terminal-footer">
+            <a href="mainmenu.html" class="skip-action-btn">Continue</a>
+        </footer>
+    </div>
+
+    <script>      
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAABQklEQVR4nO2WsU4DMRBEf94bSioKOn7/10AnofwAnZ0pIAsFidgZfSg9XbK9vS92vN6v16fH6enp9O0pWwZ/p8BsgdkCs8V9w8wXmB3uC8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prvI8wBvYwXGCOv+T7CHNDLeIEx8prv/wM0+gIdCq7RdwAAAABJRU5ErkJggg==">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Project Bunker 11 - Mini Games Menu</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #111;
+            font-family: monospace;
+        }
+        #menuContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #2b1f1d, #0d0d11);
+            z-index: 1;
+        }
+        #interfacePanel {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 40px 50px;
+            border: 2px solid #0f0;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        h1 {
+            color: #0f0;
+            font-size: 28px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px #000;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #8c664d;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .nav-btn {
+            display: block;
+            width: 200px;
+            padding: 14px;
+            background: rgba(0, 255, 0, 0.1);
+            color: #0f0;
+            border: 2px solid #0f0;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover {
+            background: #0f0;
+            color: #000;
+            box-shadow: 0 0 15px #0f0;
+        }
+        .nav-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+<div id="menuContainer">
+    <canvas id="backgroundCanvas"></canvas>
+    
+    <div id="interfacePanel">
+        <div>
+            <h1>Project Bunker 11</h1>
+            <div class="subtitle">MINI GAME SELECTION</div>
+        </div>
+     
+        <a href="nocraft.html" class="nav-btn">No Crafting</a>
+        <a href="moon.html" class="nav-btn">Moon</a>
+		<a href="void.html" class="nav-btn">Void</a>
+		<a href="pink.html" class="nav-btn">Pink-Purple</a>
+		<a href="superbouncy.html" class="nav-btn">Super Bouncy</a>
+    </div>
+</div>
+
+<script>
+const wastelandMusic = new Audio('Audio/WastelandTheme.m4a');
+wastelandMusic.loop = true;
+wastelandMusic.volume = 0.5;
+
+// 1. Create a clean styling with pointer-events enabled and a higher z-index layering
+const audioStyle = document.createElement('style');
+audioStyle.textContent = `
+    .audio-inline-btn {
+        position: relative;
+        z-index: 99999;     /* Pushes button physically in front of game layers */
+        pointer-events: auto; /* Forces the browser to intercept your mouse clicks */
+        background: #222;
+        color: #fff;
+        border: 1px solid #555;
+        padding: 2px 8px;
+        margin-left: 15px; 
+        cursor: pointer;
+        font-family: inherit; 
+        font-size: 11px;
+        text-transform: uppercase;
+        vertical-align: middle;
+        border-radius: 3px;
+        transition: all 0.2s ease;
+    }
+    .audio-inline-btn:hover {
+        background: #444;
+        border-color: #888;
+    }
+`;
+document.head.appendChild(audioStyle);
+
+// 2. Safely wait for the game to load, find the health row, and attach the button
+const injectAudioInterval = setInterval(() => {
+    const hpSpan = document.getElementById('hp');
+    
+    if (hpSpan) {
+        clearInterval(injectAudioInterval);
+
+        const healthRow = hpSpan.parentNode;
+        const audioBtn = document.createElement('button');
+        audioBtn.id = 'audio-control-btn';
+        audioBtn.className = 'audio-inline-btn';
+        audioBtn.innerHTML = '▶ Music';
+
+        healthRow.appendChild(audioBtn);
+
+        // 3. Block mouse click triggers from passing down into your block-placing logic
+        const stopClickProp = (e) => {
+            e.stopPropagation(); // Prevents the game from building a block beneath the button
+        };
+        
+        audioBtn.addEventListener('click', stopClickProp);
+        audioBtn.addEventListener('mousedown', stopClickProp);
+        audioBtn.addEventListener('mouseup', stopClickProp);
+
+        // 4. Control music play/pause on click
+        audioBtn.addEventListener('click', (e) => {
+            if (wastelandMusic.paused) {
+                wastelandMusic.play()
+                    .then(() => {
+                        audioBtn.innerHTML = 'Music';
+                    })
+                    .catch(err => console.log("Playback error:", err));
+            } else {
+                wastelandMusic.pause();
+                audioBtn.innerHTML = '▶ Music';
+            }
+        });
+    }
+}, 50);
+const canvas = document.getElementById("backgroundCanvas");
+const ctx = canvas.getContext("2d");
+
+const backgroundBuildings = [];
+const particles = [];
+
+function init() {
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    generateBackgroundCity();
+    requestAnimationFrame(animationLoop);
+}
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+function generateBackgroundCity() {
+    backgroundBuildings.length = 0;
+    // Stretch across the horizontal width to prevent edge cutting
+    for (let i = 0; i < 60; i++) {
+        backgroundBuildings.push({
+            x: i * 70 - 200,
+            width: 45 + Math.random() * 40,
+            height: 200 + Math.random() * 250,
+            color: `rgba(${30 + Math.random() * 15}, ${22 + Math.random() * 10}, 15, 0.45)`,
+            windows: Array.from({length: 12}, () => Math.random() > 0.6)
+        });
+    }
+}
+
+function updateAndSpawnParticles() {
+    // Generate gentle sparks floating upwards
+    if (particles.length < 40 && Math.random() < 0.1) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: canvas.height + 10,
+            vx: (Math.random() - 0.5) * 0.8,
+            vy: -0.5 - Math.random() * 1.2,
+            life: 100 + Math.random() * 150,
+            color: Math.random() > 0.4 ? "rgba(140, 102, 77, 0.3)" : "rgba(0, 255, 0, 0.2)"
+        });
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        if (p.life <= 0 || p.x < 0 || p.x > canvas.width || p.y < 0) {
+            particles.splice(i, 1);
+        }
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw post-apocalyptic cityscape skyline silhouette layout layers
+    backgroundBuildings.forEach(b => {
+        ctx.fillStyle = b.color;
+        ctx.fillRect(b.x, canvas.height - b.height, b.width, b.height);
+        
+        ctx.fillStyle = "rgba(255, 230, 150, 0.2)";
+        let rowCount = Math.floor(b.height / 35);
+        let colCount = Math.floor(b.width / 18);
+        
+        for (let r = 0; r < rowCount; r++) {
+            for (let c = 0; c < colCount; c++) {
+                if (b.windows[(r + c) % b.windows.length]) {
+                    ctx.fillRect(b.x + 6 + (c * 14), canvas.height - b.height + 15 + (r * 30), 6, 10);
+                }
+            }
+        }
+    });
+
+    // Render embers
+    particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, 3, 3);
+    });
+}
+
+function animationLoop() {
+    updateAndSpawnParticles();
+    draw();
+    requestAnimationFrame(animationLoop);
+}
+
+init();
+// any reproduction of these works will result in the perpitrator being scalped and having their skull mounted on my bedroom wall. This is not a joke.//
+</script>
+</body>
+</html>
